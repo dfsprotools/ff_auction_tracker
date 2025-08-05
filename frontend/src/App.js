@@ -393,6 +393,25 @@ const AuctionTracker = () => {
               </div>
               
               <div className="flex items-center justify-between bg-slate-700 rounded p-2">
+                <span className="text-slate-300">FLEX:</span>
+                <Select 
+                  value={leagueSettings.position_requirements.FLEX.toString()} 
+                  onValueChange={(value) => updatePositionRequirement('FLEX', value)}
+                >
+                  <SelectTrigger className="w-16 h-8 bg-slate-600 border-slate-500 text-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-slate-700 border-slate-600">
+                    {[0, 1, 2, 3].map(num => (
+                      <SelectItem key={num} value={num.toString()} className="text-white">
+                        {num}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="flex items-center justify-between bg-slate-700 rounded p-2">
                 <span className="text-slate-300">K:</span>
                 <Select 
                   value={leagueSettings.position_requirements.K.toString()} 
@@ -431,7 +450,7 @@ const AuctionTracker = () => {
               </div>
             </div>
             <div className="mt-2 text-slate-400 text-sm">
-              Remaining spots are BENCH positions • Total: {
+              FLEX can be RB/WR/TE • Total: {
                 Object.values(leagueSettings.position_requirements).reduce((sum, val) => sum + val, 0)
               } starters, {leagueSettings.roster_size - Object.values(leagueSettings.position_requirements).reduce((sum, val) => sum + val, 0)} bench
             </div>
