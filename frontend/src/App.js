@@ -980,6 +980,8 @@ const AuctionTracker = () => {
             className="bg-slate-700 border-slate-600 text-white"
             min="1"
             step="1"
+            inputMode="numeric"
+            autoComplete="off"
           />
 
           {searchResults.length === 1 && selectedTeam && bidAmount && (
