@@ -400,6 +400,7 @@ const AuctionTracker = () => {
               </div>
             </DialogContent>
           </Dialog>
+          </div>
         </div>
       </div>
 
