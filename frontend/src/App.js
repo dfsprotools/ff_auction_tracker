@@ -221,54 +221,51 @@ const AuctionTracker = () => {
     });
   }, [playerDatabase, league]);
 
-  // Filter players for draft based on search query
+  // Filter players for draft based on search query - FIXED VERSION
   const getFilteredDraftPlayers = useCallback((query) => {
-    console.log("DEBUG: Search query:", query);
+    console.log("🔥 SEARCH DEBUG: Query =", query);
     const availablePlayers = getAvailablePlayersForDraft();
-    console.log("DEBUG: Total available players:", availablePlayers.length);
+    console.log("🔥 SEARCH DEBUG: Available players =", availablePlayers.length);
 
     if (!query.trim()) return [];
 
     const searchQuery = query.toLowerCase();
-    console.log("DEBUG: Lowercase query:", searchQuery);
     
-    // For debugging - let's see what we're filtering
+    // For single letter searches - ONLY show players whose FIRST NAME starts with that letter
     if (query.length === 1) {
-      console.log("DEBUG: Single letter search detected");
+      console.log("🔥 SINGLE LETTER SEARCH:", searchQuery);
       
-      const firstNameMatches = [];
-      const otherMatches = [];
-
+      const results = [];
+      
       availablePlayers.forEach(player => {
         const firstName = player.name.split(' ')[0].toLowerCase();
-        console.log(`DEBUG: Player ${player.name}, first name: "${firstName}", starts with "${searchQuery}"?`, firstName.startsWith(searchQuery));
+        console.log(`🔥 CHECKING: ${player.name} - First name: "${firstName}" - Starts with "${searchQuery}"?`, firstName.startsWith(searchQuery));
         
+        // ONLY add if first name starts with the search letter
         if (firstName.startsWith(searchQuery)) {
-          firstNameMatches.push(player);
+          results.push(player);
+          console.log(`✅ ADDED: ${player.name}`);
         } else {
-          otherMatches.push(player);
+          console.log(`❌ REJECTED: ${player.name}`);
         }
       });
 
-      console.log("DEBUG: First name matches:", firstNameMatches.map(p => p.name));
-      console.log("DEBUG: Other matches:", otherMatches.map(p => p.name));
+      // Sort by ETR rank
+      results.sort((a, b) => (a.etr_rank || 999) - (b.etr_rank || 999));
       
-      const filtered = [...firstNameMatches, ...otherMatches];
-      filtered.sort((a, b) => (a.etr_rank || 999) - (b.etr_rank || 999));
-      
-      const result = filtered.slice(0, 10);
-      console.log("DEBUG: Final results:", result.map(p => p.name));
-      return result;
+      const finalResults = results.slice(0, 10);
+      console.log("🔥 FINAL RESULTS:", finalResults.map(p => p.name));
+      return finalResults;
     }
     
     // For multi-character searches
-    let filtered = availablePlayers.filter(player => {
+    const results = availablePlayers.filter(player => {
       const firstName = player.name.split(' ')[0].toLowerCase();
       return firstName.startsWith(searchQuery);
     });
     
-    filtered.sort((a, b) => (a.etr_rank || 999) - (b.etr_rank || 999));
-    return filtered.slice(0, 10);
+    results.sort((a, b) => (a.etr_rank || 999) - (b.etr_rank || 999));
+    return results.slice(0, 10);
   }, [getAvailablePlayersForDraft]);
 
   // Memoized search query handler  
