@@ -79,13 +79,33 @@ const AuctionTracker = () => {
   };
 
   const selectUser = (role, teamId = null) => {
+    if (role === 'commissioner') {
+      setShowPasswordPrompt(true);
+      return;
+    }
+    
+    // For team members, directly set user
     setUserRole(role);
-    setCurrentUser(role === 'commissioner' ? 'Commissioner' : teamId);
+    setCurrentUser(teamId);
     setShowUserSelection(false);
     
     // If team member, set their team as selected
     if (role === 'team' && teamId) {
       setSelectedTeam(teamId);
+    }
+  };
+
+  const authenticateCommissioner = () => {
+    if (commissionerPassword === COMMISSIONER_PASSWORD) {
+      setUserRole('commissioner');
+      setCurrentUser('Commissioner');
+      setShowUserSelection(false);
+      setShowPasswordPrompt(false);
+      setCommissionerPassword('');
+      toast.success('Commissioner access granted');
+    } else {
+      toast.error('Invalid commissioner password');
+      setCommissionerPassword('');
     }
   };
 
