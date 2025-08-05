@@ -102,9 +102,14 @@ const AuctionTracker = () => {
     setTempTeamName(team.name);
   };
 
-  const cancelEditingTeam = () => {
-    setEditingTeam(null);
-    setTempTeamName('');
+  const updatePositionRequirement = (position, value) => {
+    setLeagueSettings({
+      ...leagueSettings,
+      position_requirements: {
+        ...leagueSettings.position_requirements,
+        [position]: parseInt(value)
+      }
+    });
   };
 
   const searchPlayers = async (query = '') => {
