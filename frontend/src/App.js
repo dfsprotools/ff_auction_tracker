@@ -269,7 +269,11 @@ const AuctionTracker = () => {
         amount: parseInt(bidAmount)
       });
       
-      setLeague(response.data);
+      // CRITICAL: Update league state completely
+      const updatedLeague = response.data;
+      setLeague(updatedLeague);
+      
+      // Clear form
       setSearchQuery('');
       setSearchResults([]);
       setBidAmount('');
@@ -278,6 +282,8 @@ const AuctionTracker = () => {
       await loadPlayerDatabase();
       
       toast.success(`${player.name} drafted for $${bidAmount}!`);
+      
+      console.log('Draft completed, league updated:', updatedLeague);
     } catch (error) {
       console.error('Error adding draft pick:', error);
       toast.error(error.response?.data?.detail || 'Failed to add draft pick');
