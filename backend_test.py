@@ -147,7 +147,7 @@ class FantasyFootballAPITester:
                     "nfl_team": "BUF",
                     "etr_rank": 1,
                     "adp": 12.5,
-                    "pos_rank": 1
+                    "pos_rank": "QB01"
                 },
                 "team_id": team_1['id'],
                 "amount": 50
