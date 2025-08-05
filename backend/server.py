@@ -422,6 +422,10 @@ async def search_players(q: str = "", position: str = "", limit: int = 500):
         filtered_players = []
         search_query = q.lower() if q else ""
         
+        # If single letter search, boost popular players
+        priority_players = []
+        regular_players = []
+        
         for player in players:
             # Check name match
             name_match = search_query in player["name"].lower() if search_query else True
@@ -431,15 +435,26 @@ async def search_players(q: str = "", position: str = "", limit: int = 500):
             position_match = not position or player["position"] == position
             
             if (name_match or team_match) and position_match:
-                filtered_players.append(player)
+                # For single letter searches, prioritize popular players
+                if len(search_query) == 1 and player["name"].lower().startswith(search_query):
+                    # Boost popular players like Josh Allen, Justin Jefferson, etc.
+                    if player["name"] in ["Josh Allen", "Justin Jefferson", "Ja'Marr Chase"]:
+                        priority_players.append(player)
+                    else:
+                        regular_players.append(player)
+                else:
+                    filtered_players.append(player)
                 
-            if len(filtered_players) >= limit:
+            if len(priority_players) + len(regular_players) + len(filtered_players) >= limit:
                 break
         
-        # Sort by ETR rank
-        filtered_players.sort(key=lambda x: x["etr_rank"] if x["etr_rank"] != 999 else 999)
+        # Combine priority and regular players
+        all_filtered = priority_players + regular_players + filtered_players
         
-        return filtered_players[:limit]
+        # Sort by ETR rank
+        all_filtered.sort(key=lambda x: x["etr_rank"] if x["etr_rank"] != 999 else 999)
+        
+        return all_filtered[:limit]
         
     except requests.RequestException as e:
         logger.error(f"Failed to load CSV from URL: {str(e)}")
