@@ -865,7 +865,7 @@ const AuctionTracker = () => {
     // Sort by ETR rank (lower rank = better player)
     filtered.sort((a, b) => (a.etr_rank || 999) - (b.etr_rank || 999));
     
-    return filtered.slice(0, 200); // Show more players for better selection
+    return filtered.slice(0, 500); // Show all available players
   };
 
   // Calculate suggested value for a player
