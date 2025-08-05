@@ -1089,7 +1089,7 @@ const AuctionTracker = () => {
             type="number"
             placeholder="Winning bid amount"
             value={bidAmount}
-            onChange={(e) => setBidAmount(e.target.value)}
+            onChange={(e) => handleBidAmountChange(e.target.value)}
             className="bg-slate-700 border-slate-600 text-white"
             min="1"
             step="1"
