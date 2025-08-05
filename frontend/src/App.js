@@ -277,6 +277,39 @@ const AuctionTracker = () => {
             </Select>
           </div>
 
+          <div>
+            <Label className="text-slate-300 text-base font-medium">Starting Lineup Requirements</Label>
+            <div className="grid grid-cols-2 gap-3 mt-2">
+              <div className="flex items-center justify-between bg-slate-700 rounded p-2">
+                <span className="text-slate-300">QB:</span>
+                <span className="text-white font-medium">1</span>
+              </div>
+              <div className="flex items-center justify-between bg-slate-700 rounded p-2">
+                <span className="text-slate-300">RB:</span>
+                <span className="text-white font-medium">2</span>
+              </div>
+              <div className="flex items-center justify-between bg-slate-700 rounded p-2">
+                <span className="text-slate-300">WR:</span>
+                <span className="text-white font-medium">2</span>
+              </div>
+              <div className="flex items-center justify-between bg-slate-700 rounded p-2">
+                <span className="text-slate-300">TE:</span>
+                <span className="text-white font-medium">1</span>
+              </div>
+              <div className="flex items-center justify-between bg-slate-700 rounded p-2">
+                <span className="text-slate-300">K:</span>
+                <span className="text-white font-medium">1</span>
+              </div>
+              <div className="flex items-center justify-between bg-slate-700 rounded p-2">
+                <span className="text-slate-300">DEF:</span>
+                <span className="text-white font-medium">1</span>
+              </div>
+            </div>
+            <div className="mt-2 text-slate-400 text-sm">
+              Remaining spots are BENCH positions
+            </div>
+          </div>
+
           <div className="flex space-x-2 pt-4">
             <Button 
               onClick={updateLeagueSettings}
