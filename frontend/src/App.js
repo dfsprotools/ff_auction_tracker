@@ -140,22 +140,38 @@ const AuctionTracker = () => {
 
   const updateLeagueSettings = async () => {
     try {
-      // First update league settings
+      // Update league settings first
       const response = await axios.put(`${API}/leagues/${league.id}/settings`, leagueSettings);
       
-      // Then update all team names
+      // Update all team names that have changed
       const updatedLeague = response.data;
       for (let i = 0; i < league.teams.length; i++) {
-        if (league.teams[i].name !== updatedLeague.teams[i]?.name) {
+        const currentName = league.teams[i].name;
+        const originalName = updatedLeague.teams[i]?.name;
+        
+        if (currentName !== originalName && currentName !== `Team ${i + 1}`) {
           await axios.put(`${API}/leagues/${league.id}/teams/${league.teams[i].id}`, {
-            name: league.teams[i].name
+            name: currentName
           });
         }
       }
       
-      // Reload the league to get fresh data
+      // Force reload league data to ensure sync
       const finalResponse = await axios.get(`${API}/leagues/${league.id}`);
-      setLeague(finalResponse.data);
+      const freshLeague = finalResponse.data;
+      
+      // Update both league state and league settings
+      setLeague(freshLeague);
+      setLeagueSettings({
+        name: freshLeague.name,
+        total_teams: freshLeague.total_teams,
+        budget_per_team: freshLeague.budget_per_team,
+        roster_size: freshLeague.roster_size,
+        position_requirements: freshLeague.position_requirements || {
+          QB: 1, RB: 2, WR: 2, TE: 1, FLEX: 1, K: 1, DEF: 1
+        }
+      });
+      
       setShowLeagueSettings(false);
       toast.success('League settings updated successfully!');
     } catch (error) {
