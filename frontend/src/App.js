@@ -196,7 +196,10 @@ const AuctionTracker = () => {
       setSearchQuery('');
       setSearchResults([]);
       setBidAmount('');
-      setShowAddPick(false);
+      
+      // Reload player database to update availability
+      await loadPlayerDatabase();
+      
       toast.success(`${player.name} drafted for $${bidAmount}!`);
     } catch (error) {
       console.error('Error adding draft pick:', error);
