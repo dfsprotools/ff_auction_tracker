@@ -222,7 +222,7 @@ class FantasyFootballAPITester:
                     "nfl_team": "SF",
                     "etr_rank": 2,
                     "adp": 3.2,
-                    "pos_rank": 1
+                    "pos_rank": "RB01"
                 },
                 "team_id": team_2['id'],
                 "amount": 75
