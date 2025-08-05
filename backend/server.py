@@ -50,6 +50,9 @@ class Team(BaseModel):
     roster: List[DraftPick] = []
     roster_spots: Dict[str, int] = {}
     max_bid: int = 0
+    remaining_spots: int = 0
+    avg_per_spot: float = 0.0
+    budget_utilization: float = 0.0
 
 class League(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
