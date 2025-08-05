@@ -228,6 +228,7 @@ const AuctionTracker = () => {
       setSearchResults(response.data);
     } catch (error) {
       console.error('Error searching players:', error);
+      setSearchResults([]);
     }
   };
 
