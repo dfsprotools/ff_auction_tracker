@@ -112,6 +112,11 @@ const AuctionTracker = () => {
     });
   };
 
+  const cancelEditingTeam = () => {
+    setEditingTeam(null);
+    setTempTeamName('');
+  };
+
   const searchPlayers = async (query = '') => {
     if (!query.trim()) {
       setSearchResults([]);
