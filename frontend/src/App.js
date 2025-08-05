@@ -43,6 +43,15 @@ const AuctionTracker = () => {
     }
   });
 
+  // NEW USER SYSTEM STATE
+  const [currentUser, setCurrentUser] = useState(null);
+  const [userRole, setUserRole] = useState(null); // 'commissioner' or 'team'
+  const [showUserSelection, setShowUserSelection] = useState(true);
+  const [activePosition, setActivePosition] = useState('ALL');
+  const [playerDatabase, setPlayerDatabase] = useState([]);
+  const [userTargets, setUserTargets] = useState([]);
+  const [userValues, setUserValues] = useState({});
+
   // Load demo league on component mount
   useEffect(() => {
     loadDemoLeague();
