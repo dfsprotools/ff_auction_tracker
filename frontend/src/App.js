@@ -104,6 +104,8 @@ const AuctionTracker = () => {
     if (utilization < 80) return 'text-yellow-400';
     return 'text-red-400';
   };
+
+  const undoPick = async (pickId) => {
     try {
       await axios.delete(`${API}/leagues/${league.id}/picks/${pickId}`);
       // Reload league data
