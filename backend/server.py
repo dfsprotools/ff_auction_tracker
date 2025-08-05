@@ -187,7 +187,7 @@ async def add_draft_pick(league_id: str, pick_data: DraftPickCreate):
     # Update team
     team.roster.append(draft_pick)
     team.spent += pick_data.amount
-    team = calculate_team_metrics(team, league.position_requirements)
+    team = calculate_team_metrics(team, league.position_requirements, league.roster_size)
     
     # Update league
     league.teams[team_index] = team
