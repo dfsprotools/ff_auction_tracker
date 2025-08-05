@@ -547,6 +547,28 @@ const AuctionTracker = () => {
             </div>
           </div>
 
+          {/* TEAM NAME MANAGEMENT */}
+          <div>
+            <Label className="text-slate-300 text-base font-medium">Team Names</Label>
+            <div className="mt-2 space-y-2 max-h-48 overflow-y-auto">
+              {league && league.teams.map((team, index) => (
+                <div key={team.id} className="flex items-center space-x-2">
+                  <span className="text-slate-400 text-sm w-16">Team {index + 1}:</span>
+                  <Input
+                    value={team.name}
+                    onChange={(e) => {
+                      const updatedTeams = [...league.teams];
+                      updatedTeams[index] = { ...team, name: e.target.value };
+                      setLeague({ ...league, teams: updatedTeams });
+                    }}
+                    className="bg-slate-700 border-slate-600 text-white flex-1"
+                    placeholder={`Team ${index + 1} name`}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+
           <div className="flex space-x-2 pt-4">
             <Button 
               onClick={updateLeagueSettings}
