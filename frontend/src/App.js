@@ -197,6 +197,13 @@ const AuctionTracker = () => {
   // Memoized bid amount handler
   const handleBidAmountChange = useCallback((value) => {
     setBidAmount(value);
+    
+    // Maintain focus on bid input
+    setTimeout(() => {
+      if (bidInputRef.current && document.activeElement !== bidInputRef.current) {
+        bidInputRef.current.focus();
+      }
+    }, 0);
   }, []);
 
   // Get available players for draft (excluding drafted players)
