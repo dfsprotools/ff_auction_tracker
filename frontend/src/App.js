@@ -324,9 +324,32 @@ const AuctionTracker = () => {
           <Card key={team.id} className="bg-white/10 backdrop-blur-md border-white/20">
             <CardHeader>
               <CardTitle className="text-white text-2xl">{team.name}</CardTitle>
-              <div className="flex justify-between text-lg">
-                <span className="text-slate-300">Spent: ${team.spent}</span>
-                <span className="text-emerald-400 font-bold">Left: ${team.remaining}</span>
+              <div className="space-y-3">
+                {/* Budget Summary */}
+                <div className="flex justify-between text-lg">
+                  <span className="text-slate-300">Spent: ${team.spent}</span>
+                  <span className="text-emerald-400 font-bold">Left: ${team.remaining}</span>
+                </div>
+                
+                {/* CRITICAL: MAX BID - Large and Prominent for TV */}
+                <div className="bg-slate-900/70 rounded-lg p-4 border-2 border-emerald-500/50">
+                  <div className="text-center">
+                    <div className="text-slate-300 text-sm uppercase tracking-wide">MAX BID</div>
+                    <div className={`text-3xl font-bold ${getMaxBidColorClass(team.max_bid)}`}>
+                      ${team.max_bid}
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Roster and Key Metrics */}
+                <div className="flex justify-between text-base">
+                  <span className="text-slate-400">
+                    Roster: <span className="text-white font-medium">{team.roster.length}/{league.roster_size}</span>
+                  </span>
+                  <span className="text-slate-400">
+                    Left: <span className="text-white font-medium">{team.remaining_spots || 0} spots</span>
+                  </span>
+                </div>
               </div>
             </CardHeader>
             <CardContent>
