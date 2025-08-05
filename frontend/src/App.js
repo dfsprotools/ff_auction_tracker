@@ -1094,6 +1094,7 @@ const AuctionTracker = () => {
           </Select>
 
           <Input
+            ref={bidInputRef}
             type="number"
             placeholder="Winning bid amount"
             value={bidAmount}
