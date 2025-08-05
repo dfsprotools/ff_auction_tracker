@@ -665,10 +665,13 @@ class FantasyFootballAPITester:
         tests = [
             self.test_api_health,
             self.test_create_demo_league,
+            self.test_flex_position_default,
             self.test_player_search,
             self.test_draft_player_and_max_bid_update,
             self.test_draft_second_player,
             self.test_undo_functionality,
+            self.test_flex_position_double_flex,
+            self.test_flex_position_no_flex,
             self.test_league_settings_no_kicker,
             self.test_league_settings_superflex,
             self.test_league_settings_edge_cases
