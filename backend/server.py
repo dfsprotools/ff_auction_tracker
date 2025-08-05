@@ -250,12 +250,12 @@ async def create_demo_league():
             remaining=300,
             roster_spots={
                 "QB": 1, "RB": 2, "WR": 2, "TE": 1, 
-                "K": 1, "DEF": 1, "BENCH": 7
+                "K": 1, "DEF": 1
             }
         )
         team = calculate_team_metrics(team, {
             "QB": 1, "RB": 2, "WR": 2, "TE": 1, 
-            "K": 1, "DEF": 1, "BENCH": 7
+            "K": 1, "DEF": 1
         }, 16)
         teams.append(team)
     
