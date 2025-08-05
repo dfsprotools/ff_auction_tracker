@@ -158,6 +158,51 @@ const AuctionTracker = () => {
     return 'text-red-400';
   };
 
+  // Calculate which positions a team still needs
+  const calculatePositionsNeeded = (team, positionRequirements) => {
+    const positionsNeeded = [];
+    const positionsFilled = {};
+    
+    // Count filled positions
+    team.roster.forEach(pick => {
+      const pos = pick.player.position;
+      positionsFilled[pos] = (positionsFilled[pos] || 0) + 1;
+    });
+    
+    // Check starting positions needed
+    Object.entries(positionRequirements).forEach(([position, required]) => {
+      if (position !== 'BENCH') {
+        const filled = positionsFilled[position] || 0;
+        const needed = required - filled;
+        
+        for (let i = 0; i < needed; i++) {
+          positionsNeeded.push({
+            position: position,
+            type: 'starter'
+          });
+        }
+      }
+    });
+    
+    // Calculate remaining bench spots needed
+    const totalStartingSpots = Object.entries(positionRequirements)
+      .filter(([pos]) => pos !== 'BENCH')
+      .reduce((sum, [, required]) => sum + required, 0);
+    
+    const benchSpots = league.roster_size - totalStartingSpots;
+    const currentRosterSize = team.roster.length;
+    const benchSpotsNeeded = Math.max(0, benchSpots - Math.max(0, currentRosterSize - totalStartingSpots));
+    
+    for (let i = 0; i < benchSpotsNeeded; i++) {
+      positionsNeeded.push({
+        position: 'BENCH',
+        type: 'bench'
+      });
+    }
+    
+    return positionsNeeded.slice(0, 8); // Limit display to 8 positions
+  };
+
   const LeagueSettingsDialog = () => (
     <Dialog open={showLeagueSettings} onOpenChange={setShowLeagueSettings}>
       <DialogContent className="bg-slate-800 border-slate-700 max-w-md">
