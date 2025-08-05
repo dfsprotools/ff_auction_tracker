@@ -221,11 +221,9 @@ const AuctionTracker = () => {
     });
   }, [playerDatabase, league]);
 
-  // Filter players for draft based on search query - FIXED VERSION
+  // Filter players for draft based on search query - WORKING VERSION
   const getFilteredDraftPlayers = useCallback((query) => {
-    console.log("🔥 SEARCH DEBUG: Query =", query);
     const availablePlayers = getAvailablePlayersForDraft();
-    console.log("🔥 SEARCH DEBUG: Available players =", availablePlayers.length);
 
     if (!query.trim()) return [];
 
@@ -233,29 +231,21 @@ const AuctionTracker = () => {
     
     // For single letter searches - ONLY show players whose FIRST NAME starts with that letter
     if (query.length === 1) {
-      console.log("🔥 SINGLE LETTER SEARCH:", searchQuery);
-      
       const results = [];
       
       availablePlayers.forEach(player => {
         const firstName = player.name.split(' ')[0].toLowerCase();
-        console.log(`🔥 CHECKING: ${player.name} - First name: "${firstName}" - Starts with "${searchQuery}"?`, firstName.startsWith(searchQuery));
         
         // ONLY add if first name starts with the search letter
         if (firstName.startsWith(searchQuery)) {
           results.push(player);
-          console.log(`✅ ADDED: ${player.name}`);
-        } else {
-          console.log(`❌ REJECTED: ${player.name}`);
         }
       });
 
       // Sort by ETR rank
       results.sort((a, b) => (a.etr_rank || 999) - (b.etr_rank || 999));
       
-      const finalResults = results.slice(0, 10);
-      console.log("🔥 FINAL RESULTS:", finalResults.map(p => p.name));
-      return finalResults;
+      return results.slice(0, 10);
     }
     
     // For multi-character searches
