@@ -213,7 +213,12 @@ const AuctionTracker = () => {
                   <SelectContent className="bg-slate-700 border-slate-600">
                     {league.teams.map(team => (
                       <SelectItem key={team.id} value={team.id} className="text-white">
-                        {team.name} (${team.remaining} left)
+                        <div className="flex justify-between w-full">
+                          <span>{team.name}</span>
+                          <span className="ml-4 text-slate-400">
+                            ${team.remaining} left • Max: <span className={getMaxBidColorClass(team.max_bid).replace('font-bold', '')}>${team.max_bid}</span>
+                          </span>
+                        </div>
                       </SelectItem>
                     ))}
                   </SelectContent>
