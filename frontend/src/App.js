@@ -91,7 +91,19 @@ const AuctionTracker = () => {
     }
   };
 
-  const undoPick = async (pickId) => {
+  // Helper function to get max bid color class
+  const getMaxBidColorClass = (maxBid) => {
+    if (maxBid > 50) return 'text-emerald-400 font-bold';
+    if (maxBid >= 10) return 'text-yellow-400 font-bold';
+    return 'text-red-400 font-bold';
+  };
+
+  // Helper function to get budget utilization color
+  const getBudgetUtilizationColor = (utilization) => {
+    if (utilization < 50) return 'text-emerald-400';
+    if (utilization < 80) return 'text-yellow-400';
+    return 'text-red-400';
+  };
     try {
       await axios.delete(`${API}/leagues/${league.id}/picks/${pickId}`);
       // Reload league data
