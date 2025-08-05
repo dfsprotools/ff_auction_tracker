@@ -180,20 +180,31 @@ const AuctionTracker = () => {
     }
   };
 
-  const updateTeamName = async (teamId, newName) => {
-    try {
-      const response = await axios.put(`${API}/leagues/${league.id}/teams/${teamId}`, {
-        name: newName
-      });
-      setLeague(response.data);
-      setEditingTeam(null);
-      setTempTeamName('');
-      toast.success('Team name updated!');
-    } catch (error) {
-      console.error('Error updating team name:', error);
-      toast.error('Failed to update team name');
+  // Memoized team name update to prevent re-renders
+  const updateTeamName = useCallback((teamId, newName) => {
+    setLeague(prevLeague => ({
+      ...prevLeague,
+      teams: prevLeague.teams.map(team => 
+        team.id === teamId ? { ...team, name: newName } : team
+      )
+    }));
+  }, []);
+
+  // Memoized bid amount handler
+  const handleBidAmountChange = useCallback((value) => {
+    setBidAmount(value);
+  }, []);
+
+  // Memoized search query handler  
+  const handleSearchQueryChange = useCallback((value) => {
+    setSearchQuery(value);
+    if (value.trim()) {
+      const filteredResults = getFilteredDraftPlayers(value);
+      setSearchResults(filteredResults);
+    } else {
+      setSearchResults([]);
     }
-  };
+  }, [getFilteredDraftPlayers]);
 
   const startEditingTeam = (team) => {
     setEditingTeam(team.id);
