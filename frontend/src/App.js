@@ -316,31 +316,122 @@ const AuctionTracker = () => {
             <div className="grid grid-cols-2 gap-3 mt-2">
               <div className="flex items-center justify-between bg-slate-700 rounded p-2">
                 <span className="text-slate-300">QB:</span>
-                <span className="text-white font-medium">1</span>
+                <Select 
+                  value={leagueSettings.position_requirements.QB.toString()} 
+                  onValueChange={(value) => updatePositionRequirement('QB', value)}
+                >
+                  <SelectTrigger className="w-16 h-8 bg-slate-600 border-slate-500 text-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-slate-700 border-slate-600">
+                    {[0, 1, 2, 3].map(num => (
+                      <SelectItem key={num} value={num.toString()} className="text-white">
+                        {num}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
+              
               <div className="flex items-center justify-between bg-slate-700 rounded p-2">
                 <span className="text-slate-300">RB:</span>
-                <span className="text-white font-medium">2</span>
+                <Select 
+                  value={leagueSettings.position_requirements.RB.toString()} 
+                  onValueChange={(value) => updatePositionRequirement('RB', value)}
+                >
+                  <SelectTrigger className="w-16 h-8 bg-slate-600 border-slate-500 text-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-slate-700 border-slate-600">
+                    {[0, 1, 2, 3, 4].map(num => (
+                      <SelectItem key={num} value={num.toString()} className="text-white">
+                        {num}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
+              
               <div className="flex items-center justify-between bg-slate-700 rounded p-2">
                 <span className="text-slate-300">WR:</span>
-                <span className="text-white font-medium">2</span>
+                <Select 
+                  value={leagueSettings.position_requirements.WR.toString()} 
+                  onValueChange={(value) => updatePositionRequirement('WR', value)}
+                >
+                  <SelectTrigger className="w-16 h-8 bg-slate-600 border-slate-500 text-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-slate-700 border-slate-600">
+                    {[0, 1, 2, 3, 4, 5, 6].map(num => (
+                      <SelectItem key={num} value={num.toString()} className="text-white">
+                        {num}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
+              
               <div className="flex items-center justify-between bg-slate-700 rounded p-2">
                 <span className="text-slate-300">TE:</span>
-                <span className="text-white font-medium">1</span>
+                <Select 
+                  value={leagueSettings.position_requirements.TE.toString()} 
+                  onValueChange={(value) => updatePositionRequirement('TE', value)}
+                >
+                  <SelectTrigger className="w-16 h-8 bg-slate-600 border-slate-500 text-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-slate-700 border-slate-600">
+                    {[0, 1, 2, 3].map(num => (
+                      <SelectItem key={num} value={num.toString()} className="text-white">
+                        {num}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
+              
               <div className="flex items-center justify-between bg-slate-700 rounded p-2">
                 <span className="text-slate-300">K:</span>
-                <span className="text-white font-medium">1</span>
+                <Select 
+                  value={leagueSettings.position_requirements.K.toString()} 
+                  onValueChange={(value) => updatePositionRequirement('K', value)}
+                >
+                  <SelectTrigger className="w-16 h-8 bg-slate-600 border-slate-500 text-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-slate-700 border-slate-600">
+                    {[0, 1, 2].map(num => (
+                      <SelectItem key={num} value={num.toString()} className="text-white">
+                        {num}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
+              
               <div className="flex items-center justify-between bg-slate-700 rounded p-2">
                 <span className="text-slate-300">DEF:</span>
-                <span className="text-white font-medium">1</span>
+                <Select 
+                  value={leagueSettings.position_requirements.DEF.toString()} 
+                  onValueChange={(value) => updatePositionRequirement('DEF', value)}
+                >
+                  <SelectTrigger className="w-16 h-8 bg-slate-600 border-slate-500 text-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-slate-700 border-slate-600">
+                    {[0, 1, 2].map(num => (
+                      <SelectItem key={num} value={num.toString()} className="text-white">
+                        {num}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
             <div className="mt-2 text-slate-400 text-sm">
-              Remaining spots are BENCH positions
+              Remaining spots are BENCH positions • Total: {
+                Object.values(leagueSettings.position_requirements).reduce((sum, val) => sum + val, 0)
+              } starters, {leagueSettings.roster_size - Object.values(leagueSettings.position_requirements).reduce((sum, val) => sum + val, 0)} bench
             </div>
           </div>
 
