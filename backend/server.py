@@ -86,33 +86,23 @@ class DraftPickCreate(BaseModel):
     amount: int
 
 # Helper functions
-def calculate_team_metrics(team: Team, position_requirements: Dict[str, int]) -> Team:
-    """Calculate remaining budget and max bid for a team"""
+def calculate_team_metrics(team: Team, position_requirements: Dict[str, int], roster_size: int) -> Team:
+    """Calculate remaining budget, max bid, and other critical metrics for a team"""
     team.remaining = team.budget - team.spent
     
-    # Count positions filled
-    positions_filled = {}
-    for pick in team.roster:
-        pos = pick.player.position
-        if pos not in positions_filled:
-            positions_filled[pos] = 0
-        positions_filled[pos] += 1
-    
-    # Calculate remaining spots needed
-    remaining_spots = 0
-    for pos, required in position_requirements.items():
-        if pos != "BENCH":
-            filled = positions_filled.get(pos, 0)
-            remaining_spots += max(0, required - filled)
-    
-    # Calculate bench spots needed (total roster - specific positions)
-    total_specific_spots = sum(v for k, v in position_requirements.items() if k != "BENCH")
+    # Calculate remaining roster spots
     current_roster_size = len(team.roster)
-    bench_needed = max(0, (16 - total_specific_spots) - max(0, current_roster_size - total_specific_spots))
-    remaining_spots += bench_needed
+    remaining_roster_spots = roster_size - current_roster_size
     
-    # Max bid is remaining budget minus $1 for each remaining spot after this one
-    team.max_bid = max(0, team.remaining - max(0, remaining_spots - 1))
+    # CRITICAL: Max bid calculation
+    # Formula: Remaining Budget - (Remaining Roster Spots - 1)
+    # This ensures $1 minimum for each remaining spot after this pick
+    team.max_bid = max(0, team.remaining - max(0, remaining_roster_spots - 1))
+    
+    # Additional metrics
+    team.remaining_spots = remaining_roster_spots
+    team.avg_per_spot = round(team.remaining / max(1, remaining_roster_spots), 1) if remaining_roster_spots > 0 else 0
+    team.budget_utilization = round((team.spent / team.budget) * 100, 1) if team.budget > 0 else 0
     
     return team
 
