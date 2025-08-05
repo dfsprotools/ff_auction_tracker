@@ -370,12 +370,20 @@ async def update_team(league_id: str, team_id: str, team_data: dict):
 
 # Sample NFL players data
 @api_router.get("/players/search")
-async def search_players(q: str = "", position: str = "", limit: int = 50):
+async def search_players(q: str = "", position: str = "", limit: int = 500):
     """Search players by name, position, or team - now using real CSV data"""
     try:
         # Load CSV data from the public URL
         csv_url = "https://customer-assets.emergentagent.com/job_draft-wizard-2/artifacts/3gaj8jfg_ETR_New_Rankings_Redraft_PPR.csv"
-        response = requests.get(csv_url)
+        
+        # Add headers to avoid blocking
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+        }
+        
+        response = requests.get(csv_url, headers=headers, timeout=30)
+        response.raise_for_status()  # Raise exception for bad status codes
+        
         csv_data = StringIO(response.text)
         
         players = []
@@ -383,15 +391,25 @@ async def search_players(q: str = "", position: str = "", limit: int = 50):
         
         for row in csv_reader:
             # Clean and parse the data
-            player = {
-                "name": row["Name"].strip('"'),
-                "position": row["Position"].strip('"'),
-                "nfl_team": row["Team"].strip('"'),
-                "etr_rank": int(row["ETR Rank"]) if row["ETR Rank"].strip('"') else None,
-                "adp": float(row["ADP"]) if row["ADP"].strip('"') else None,
-                "pos_rank": row["Pos Rank ETR"].strip('"')
-            }
-            players.append(player)
+            try:
+                player = {
+                    "name": row["Name"].strip('"'),
+                    "position": row["Position"].strip('"'),
+                    "nfl_team": row["Team"].strip('"'),
+                    "etr_rank": int(row["ETR Rank"].strip('"')) if row["ETR Rank"].strip('"').isdigit() else 999,
+                    "adp": float(row["ADP"].strip('"')) if row["ADP"].strip('"').replace('.','').isdigit() else 999.0,
+                    "pos_rank": row["Pos Rank ETR"].strip('"')
+                }
+                
+                # Only add valid players
+                if player["name"] and player["position"]:
+                    players.append(player)
+                    
+            except (ValueError, KeyError) as e:
+                # Skip malformed rows but continue processing
+                continue
+        
+        logger.info(f"Successfully loaded {len(players)} players from CSV")
         
         # Filter players based on search criteria
         filtered_players = []
@@ -412,19 +430,83 @@ async def search_players(q: str = "", position: str = "", limit: int = 50):
                 break
         
         # Sort by ETR rank
-        filtered_players.sort(key=lambda x: x["etr_rank"] if x["etr_rank"] else 999)
+        filtered_players.sort(key=lambda x: x["etr_rank"] if x["etr_rank"] != 999 else 999)
         
         return filtered_players[:limit]
         
-    except Exception as e:
-        # Fallback to sample data if CSV loading fails
+    except requests.RequestException as e:
+        logger.error(f"Failed to load CSV from URL: {str(e)}")
+        # Enhanced fallback data with more players
         sample_players = [
-            {"name": "Josh Allen", "position": "QB", "nfl_team": "BUF", "etr_rank": 40, "adp": 23.6, "pos_rank": "QB01"},
-            {"name": "Christian McCaffrey", "position": "RB", "nfl_team": "SF", "etr_rank": 7, "adp": 9.4, "pos_rank": "RB04"},
             {"name": "Ja'Marr Chase", "position": "WR", "nfl_team": "CIN", "etr_rank": 1, "adp": 1.0, "pos_rank": "WR01"},
+            {"name": "Bijan Robinson", "position": "RB", "nfl_team": "ATL", "etr_rank": 2, "adp": 2.8, "pos_rank": "RB01"},
+            {"name": "CeeDee Lamb", "position": "WR", "nfl_team": "DAL", "etr_rank": 3, "adp": 5.2, "pos_rank": "WR02"},
+            {"name": "Saquon Barkley", "position": "RB", "nfl_team": "PHI", "etr_rank": 4, "adp": 2.8, "pos_rank": "RB02"},
+            {"name": "Justin Jefferson", "position": "WR", "nfl_team": "MIN", "etr_rank": 5, "adp": 4.6, "pos_rank": "WR03"},
+            {"name": "Jahmyr Gibbs", "position": "RB", "nfl_team": "DET", "etr_rank": 6, "adp": 4.6, "pos_rank": "RB03"},
+            {"name": "Christian McCaffrey", "position": "RB", "nfl_team": "SF", "etr_rank": 7, "adp": 9.4, "pos_rank": "RB04"},
+            {"name": "Puka Nacua", "position": "WR", "nfl_team": "LA", "etr_rank": 8, "adp": 9.0, "pos_rank": "WR04"},
+            {"name": "Amon-Ra St. Brown", "position": "WR", "nfl_team": "DET", "etr_rank": 9, "adp": 8.8, "pos_rank": "WR05"},
+            {"name": "Malik Nabers", "position": "WR", "nfl_team": "NYG", "etr_rank": 10, "adp": 9.2, "pos_rank": "WR06"},
+            {"name": "Nico Collins", "position": "WR", "nfl_team": "HOU", "etr_rank": 11, "adp": 14.4, "pos_rank": "WR07"},
+            {"name": "De'Von Achane", "position": "RB", "nfl_team": "MIA", "etr_rank": 12, "adp": 13.0, "pos_rank": "RB05"},
+            {"name": "Ashton Jeanty", "position": "RB", "nfl_team": "LV", "etr_rank": 13, "adp": 10.2, "pos_rank": "RB06"},
+            {"name": "Brian Thomas Jr.", "position": "WR", "nfl_team": "JAX", "etr_rank": 14, "adp": 14.6, "pos_rank": "WR08"},
+            {"name": "Brock Bowers", "position": "TE", "nfl_team": "LV", "etr_rank": 15, "adp": 18.6, "pos_rank": "TE01"},
+            {"name": "A.J. Brown", "position": "WR", "nfl_team": "PHI", "etr_rank": 16, "adp": 17.4, "pos_rank": "WR09"},
+            {"name": "Drake London", "position": "WR", "nfl_team": "ATL", "etr_rank": 17, "adp": 20.0, "pos_rank": "WR10"},
+            {"name": "Derrick Henry", "position": "RB", "nfl_team": "BAL", "etr_rank": 18, "adp": 11.4, "pos_rank": "RB07"},
+            {"name": "Chase Brown", "position": "RB", "nfl_team": "CIN", "etr_rank": 19, "adp": 27.4, "pos_rank": "RB08"},
+            {"name": "Bucky Irving", "position": "RB", "nfl_team": "TB", "etr_rank": 20, "adp": 21.6, "pos_rank": "RB09"},
+            {"name": "Ladd McConkey", "position": "WR", "nfl_team": "LAC", "etr_rank": 21, "adp": 24.8, "pos_rank": "WR11"},
+            {"name": "Tyreek Hill", "position": "WR", "nfl_team": "MIA", "etr_rank": 22, "adp": 28.2, "pos_rank": "WR12"},
+            {"name": "Trey McBride", "position": "TE", "nfl_team": "ARI", "etr_rank": 23, "adp": 26.0, "pos_rank": "TE02"},
+            {"name": "Josh Jacobs", "position": "RB", "nfl_team": "GB", "etr_rank": 24, "adp": 17.0, "pos_rank": "RB10"},
+            {"name": "Tee Higgins", "position": "WR", "nfl_team": "CIN", "etr_rank": 25, "adp": 31.0, "pos_rank": "WR13"},
+            {"name": "Jonathan Taylor", "position": "RB", "nfl_team": "IND", "etr_rank": 26, "adp": 20.2, "pos_rank": "RB11"},
+            {"name": "Breece Hall", "position": "RB", "nfl_team": "NYJ", "etr_rank": 27, "adp": 34.2, "pos_rank": "RB12"},
+            {"name": "Omarion Hampton", "position": "RB", "nfl_team": "LAC", "etr_rank": 28, "adp": 43.6, "pos_rank": "RB13"},
+            {"name": "Jaxon Smith-Njigba", "position": "WR", "nfl_team": "SEA", "etr_rank": 29, "adp": 33.4, "pos_rank": "WR14"},
+            {"name": "Davante Adams", "position": "WR", "nfl_team": "LA", "etr_rank": 30, "adp": 37.2, "pos_rank": "WR15"},
+            {"name": "Kyren Williams", "position": "RB", "nfl_team": "LA", "etr_rank": 31, "adp": 24.2, "pos_rank": "RB14"},
+            {"name": "George Kittle", "position": "TE", "nfl_team": "SF", "etr_rank": 32, "adp": 38.0, "pos_rank": "TE03"},
+            {"name": "Garrett Wilson", "position": "WR", "nfl_team": "NYJ", "etr_rank": 33, "adp": 35.6, "pos_rank": "WR16"},
+            {"name": "James Cook", "position": "RB", "nfl_team": "BUF", "etr_rank": 34, "adp": 31.8, "pos_rank": "RB15"},
+            {"name": "DJ Moore", "position": "WR", "nfl_team": "CHI", "etr_rank": 35, "adp": 48.6, "pos_rank": "WR17"},
+            {"name": "Xavier Worthy", "position": "WR", "nfl_team": "KC", "etr_rank": 36, "adp": 57.4, "pos_rank": "WR18"},
+            {"name": "Tet McMillan", "position": "WR", "nfl_team": "CAR", "etr_rank": 37, "adp": 67.2, "pos_rank": "WR19"},
+            {"name": "Devonta Smith", "position": "WR", "nfl_team": "PHI", "etr_rank": 38, "adp": 57.0, "pos_rank": "WR20"},
+            {"name": "Marvin Harrison Jr.", "position": "WR", "nfl_team": "ARI", "etr_rank": 39, "adp": 40.6, "pos_rank": "WR21"},
+            {"name": "Josh Allen", "position": "QB", "nfl_team": "BUF", "etr_rank": 40, "adp": 23.6, "pos_rank": "QB01"},
+            {"name": "Lamar Jackson", "position": "QB", "nfl_team": "BAL", "etr_rank": 41, "adp": 22.8, "pos_rank": "QB02"},
+            {"name": "Kenneth Walker III", "position": "RB", "nfl_team": "SEA", "etr_rank": 42, "adp": 38.2, "pos_rank": "RB16"},
+            {"name": "Terry McLaurin", "position": "WR", "nfl_team": "WAS", "etr_rank": 43, "adp": 37.6, "pos_rank": "WR22"},
+            {"name": "Alvin Kamara", "position": "RB", "nfl_team": "NO", "etr_rank": 44, "adp": 38.8, "pos_rank": "RB17"},
+            {"name": "Mike Evans", "position": "WR", "nfl_team": "TB", "etr_rank": 45, "adp": 40.2, "pos_rank": "WR23"},
+            {"name": "Courtland Sutton", "position": "WR", "nfl_team": "DEN", "etr_rank": 46, "adp": 53.6, "pos_rank": "WR24"},
+            {"name": "Zay Flowers", "position": "WR", "nfl_team": "BAL", "etr_rank": 47, "adp": 61.8, "pos_rank": "WR25"},
+            {"name": "Jayden Daniels", "position": "QB", "nfl_team": "WAS", "etr_rank": 48, "adp": 31.0, "pos_rank": "QB03"},
+            {"name": "Jaylen Waddle", "position": "WR", "nfl_team": "MIA", "etr_rank": 49, "adp": 74.8, "pos_rank": "WR26"},
+            {"name": "Chuba Hubbard", "position": "RB", "nfl_team": "CAR", "etr_rank": 50, "adp": 45.6, "pos_rank": "RB18"},
+            {"name": "Joe Burrow", "position": "QB", "nfl_team": "CIN", "etr_rank": 72, "adp": 36.4, "pos_rank": "QB05"},
+            {"name": "Patrick Mahomes", "position": "QB", "nfl_team": "KC", "etr_rank": 87, "adp": 54.6, "pos_rank": "QB07"},
+            {"name": "Brock Purdy", "position": "QB", "nfl_team": "SF", "etr_rank": 91, "adp": 105.6, "pos_rank": "QB08"},
+            {"name": "Baker Mayfield", "position": "QB", "nfl_team": "TB", "etr_rank": 93, "adp": 66.0, "pos_rank": "QB09"},
+            {"name": "Caleb Williams", "position": "QB", "nfl_team": "CHI", "etr_rank": 98, "adp": 115.0, "pos_rank": "QB10"},
+            {"name": "Sam LaPorta", "position": "TE", "nfl_team": "DET", "etr_rank": 62, "adp": 51.6, "pos_rank": "TE04"},
+            {"name": "T.J. Hockenson", "position": "TE", "nfl_team": "MIN", "etr_rank": 78, "adp": 62.0, "pos_rank": "TE05"},
             {"name": "Travis Kelce", "position": "TE", "nfl_team": "KC", "etr_rank": 79, "adp": 62.8, "pos_rank": "TE06"},
+            {"name": "Mark Andrews", "position": "TE", "nfl_team": "BAL", "etr_rank": 95, "adp": 75.8, "pos_rank": "TE07"},
             {"name": "Brandon Aubrey", "position": "K", "nfl_team": "DAL", "etr_rank": 151, "adp": 111.2, "pos_rank": "K01"},
+            {"name": "Matt Gay", "position": "K", "nfl_team": "WAS", "etr_rank": 157, "adp": 193.8, "pos_rank": "K02"},
+            {"name": "Will Reichard", "position": "K", "nfl_team": "MIN", "etr_rank": 160, "adp": 235.3, "pos_rank": "K03"},
+            {"name": "Younghoe Koo", "position": "K", "nfl_team": "ATL", "etr_rank": 166, "adp": 191.6, "pos_rank": "K04"},
+            {"name": "Cameron Dicker", "position": "K", "nfl_team": "LAC", "etr_rank": 172, "adp": 125.4, "pos_rank": "K05"},
             {"name": "DEN DST", "position": "DST", "nfl_team": "DEN", "etr_rank": 150, "adp": 114.0, "pos_rank": "DST01"},
+            {"name": "SF DST", "position": "DST", "nfl_team": "SF", "etr_rank": 164, "adp": 170.6, "pos_rank": "DST02"},
+            {"name": "BAL DST", "position": "DST", "nfl_team": "BAL", "etr_rank": 165, "adp": 135.6, "pos_rank": "DST03"},
+            {"name": "PIT DST", "position": "DST", "nfl_team": "PIT", "etr_rank": 168, "adp": 135.0, "pos_rank": "DST04"},
+            {"name": "HOU DST", "position": "DST", "nfl_team": "HOU", "etr_rank": 169, "adp": 153.0, "pos_rank": "DST05"}
         ]
         
         # Filter fallback data
@@ -435,6 +517,10 @@ async def search_players(q: str = "", position: str = "", limit: int = 50):
                 filtered_players.append(player)
         
         return filtered_players[:limit]
+        
+    except Exception as e:
+        logger.error(f"Unexpected error in player search: {str(e)}")
+        return []
 
 # Include the router in the main app
 app.include_router(api_router)
