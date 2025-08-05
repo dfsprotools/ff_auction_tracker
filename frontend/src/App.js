@@ -115,8 +115,22 @@ const AuctionTracker = () => {
 
   const updateLeagueSettings = async () => {
     try {
+      // First update league settings
       const response = await axios.put(`${API}/leagues/${league.id}/settings`, leagueSettings);
-      setLeague(response.data);
+      
+      // Then update all team names
+      const updatedLeague = response.data;
+      for (let i = 0; i < league.teams.length; i++) {
+        if (league.teams[i].name !== updatedLeague.teams[i]?.name) {
+          await axios.put(`${API}/leagues/${league.id}/teams/${league.teams[i].id}`, {
+            name: league.teams[i].name
+          });
+        }
+      }
+      
+      // Reload the league to get fresh data
+      const finalResponse = await axios.get(`${API}/leagues/${league.id}`);
+      setLeague(finalResponse.data);
       setShowLeagueSettings(false);
       toast.success('League settings updated successfully!');
     } catch (error) {
