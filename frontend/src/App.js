@@ -260,6 +260,14 @@ const AuctionTracker = () => {
   // Memoized search query handler  
   const handleSearchQueryChange = useCallback((value) => {
     setSearchQuery(value);
+    
+    // Maintain focus on the input - this prevents cursor loss
+    setTimeout(() => {
+      if (searchInputRef.current && document.activeElement !== searchInputRef.current) {
+        searchInputRef.current.focus();
+      }
+    }, 0);
+
     if (value.trim()) {
       const filteredResults = getFilteredDraftPlayers(value);
       setSearchResults(filteredResults);
