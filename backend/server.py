@@ -422,39 +422,50 @@ async def search_players(q: str = "", position: str = "", limit: int = 500):
         filtered_players = []
         search_query = q.lower() if q else ""
         
-        # If single letter search, boost popular players
-        priority_players = []
-        regular_players = []
-        
-        for player in players:
-            # Check name match
-            name_match = search_query in player["name"].lower() if search_query else True
-            # Check team match
-            team_match = search_query in player["nfl_team"].lower() if search_query else True
-            # Check position match
-            position_match = not position or player["position"] == position
+        # For single letter searches, prioritize players whose names START with that letter
+        if len(search_query) == 1:
+            # First, get players whose FIRST NAME starts with the letter
+            priority_first_name = []
+            priority_last_name = []
+            other_matches = []
             
-            if (name_match or team_match) and position_match:
-                # For single letter searches, prioritize popular players
-                if len(search_query) == 1 and player["name"].lower().startswith(search_query):
-                    # Boost popular players like Josh Allen, Justin Jefferson, etc.
-                    if player["name"] in ["Josh Allen", "Justin Jefferson", "Ja'Marr Chase"]:
-                        priority_players.append(player)
-                    else:
-                        regular_players.append(player)
-                else:
-                    filtered_players.append(player)
+            for player in players:
+                name_lower = player["name"].lower()
+                position_match = not position or player["position"] == position
                 
-            if len(priority_players) + len(regular_players) + len(filtered_players) >= limit:
-                break
+                if not position_match:
+                    continue
+                    
+                # Check if first name starts with search letter
+                first_name = name_lower.split()[0] if ' ' in name_lower else name_lower
+                if first_name.startswith(search_query):
+                    # Boost mega-popular players like Josh Allen
+                    if player["name"] in ["Josh Allen", "Justin Jefferson", "Ja'Marr Chase", "Jahmyr Gibbs"]:
+                        priority_first_name.append(player)
+                    else:
+                        priority_last_name.append(player)
+                elif search_query in name_lower or search_query in player["nfl_team"].lower():
+                    other_matches.append(player)
+            
+            # Combine in priority order
+            filtered_players = priority_first_name + priority_last_name + other_matches
+        else:
+            # For multi-character searches, use normal logic
+            for player in players:
+                name_match = search_query in player["name"].lower() if search_query else True
+                team_match = search_query in player["nfl_team"].lower() if search_query else True
+                position_match = not position or player["position"] == position
+                
+                if (name_match or team_match) and position_match:
+                    filtered_players.append(player)
+                    
+                if len(filtered_players) >= limit:
+                    break
         
-        # Combine priority and regular players
-        all_filtered = priority_players + regular_players + filtered_players
+        # Sort by ETR rank within groups
+        filtered_players.sort(key=lambda x: x["etr_rank"] if x["etr_rank"] != 999 else 999)
         
-        # Sort by ETR rank
-        all_filtered.sort(key=lambda x: x["etr_rank"] if x["etr_rank"] != 999 else 999)
-        
-        return all_filtered[:limit]
+        return filtered_players[:limit]
         
     except requests.RequestException as e:
         logger.error(f"Failed to load CSV from URL: {str(e)}")
