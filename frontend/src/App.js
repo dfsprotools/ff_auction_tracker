@@ -409,7 +409,49 @@ const AuctionTracker = () => {
         {league.teams.map(team => (
           <Card key={team.id} className="bg-white/10 backdrop-blur-md border-white/20">
             <CardHeader className="pb-3">
-              <CardTitle className="text-white text-lg">{team.name}</CardTitle>
+              <div className="flex items-center justify-between">
+                {editingTeam === team.id ? (
+                  <div className="flex items-center space-x-2 flex-1">
+                    <Input
+                      value={tempTeamName}
+                      onChange={(e) => setTempTeamName(e.target.value)}
+                      className="bg-slate-700 border-slate-600 text-white text-lg font-bold"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') updateTeamName(team.id, tempTeamName);
+                        if (e.key === 'Escape') cancelEditingTeam();
+                      }}
+                      autoFocus
+                    />
+                    <Button
+                      size="sm"
+                      onClick={() => updateTeamName(team.id, tempTeamName)}
+                      className="bg-emerald-600 hover:bg-emerald-700 h-8 w-8 p-0"
+                    >
+                      <Save className="h-3 w-3" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={cancelEditingTeam}
+                      className="border-slate-600 text-slate-400 hover:bg-slate-700 h-8 w-8 p-0"
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="flex items-center space-x-2 flex-1">
+                    <CardTitle className="text-white text-lg">{team.name}</CardTitle>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => startEditingTeam(team)}
+                      className="text-slate-400 hover:text-white hover:bg-slate-700 h-6 w-6 p-0"
+                    >
+                      <Edit className="h-3 w-3" />
+                    </Button>
+                  </div>
+                )}
+              </div>
               <div className="space-y-2">
                 {/* Budget Summary */}
                 <div className="flex justify-between text-sm">
