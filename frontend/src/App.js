@@ -310,40 +310,6 @@ const AuctionTracker = () => {
     setTempTeamName('');
   };
 
-  // Debounced search function to prevent excessive API calls
-  const debouncedSearchPlayers = useCallback(
-    debounce(async (query) => {
-      if (!query.trim()) {
-        setSearchResults([]);
-        return;
-      }
-      
-      try {
-        const response = await axios.get(`${API}/players/search`, {
-          params: { q: query, limit: 10 }
-        });
-        setSearchResults(response.data || []);
-      } catch (error) {
-        console.error('Error searching players:', error);
-        setSearchResults([]);
-      }
-    }, 300),
-    []
-  );
-
-  // Debounce utility function
-  function debounce(func, delay) {
-    let timeoutId;
-    return function (...args) {
-      clearTimeout(timeoutId);
-      timeoutId = setTimeout(() => func.apply(this, args), delay);
-    };
-  }
-
-  const searchPlayers = async (query = '') => {
-    debouncedSearchPlayers(query);
-  };
-
   const addDraftPick = async (player) => {
     if (!selectedTeam || !bidAmount) {
       toast.error('Please select a team and enter bid amount');
