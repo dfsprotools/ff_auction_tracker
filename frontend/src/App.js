@@ -195,6 +195,56 @@ const AuctionTracker = () => {
     setBidAmount(value);
   }, []);
 
+  // Get available players for draft (excluding drafted players)
+  const getAvailablePlayersForDraft = useCallback(() => {
+    if (!playerDatabase || !league) return [];
+    
+    return playerDatabase.filter(player => {
+      // Check if player is already drafted
+      const isDrafted = league.all_picks?.some(pick => 
+        pick.player.name === player.name && 
+        pick.player.position === player.position &&
+        pick.player.nfl_team === player.nfl_team
+      );
+      return !isDrafted;
+    });
+  }, [playerDatabase, league]);
+
+  // Filter players for draft based on search query
+  const getFilteredDraftPlayers = useCallback((query) => {
+    const availablePlayers = getAvailablePlayersForDraft();
+    
+    if (!query.trim()) return [];
+    
+    const searchQuery = query.toLowerCase();
+    let filtered = availablePlayers.filter(player => 
+      player.name.toLowerCase().includes(searchQuery) ||
+      player.nfl_team.toLowerCase().includes(searchQuery)
+    );
+    
+    // For single letter searches, prioritize popular players
+    if (query.length === 1) {
+      const priority = [];
+      const regular = [];
+      
+      filtered.forEach(player => {
+        if (player.name.toLowerCase().startsWith(searchQuery) && 
+            ["Josh Allen", "Justin Jefferson", "Ja'Marr Chase"].includes(player.name)) {
+          priority.push(player);
+        } else {
+          regular.push(player);
+        }
+      });
+      
+      filtered = [...priority, ...regular];
+    }
+    
+    // Sort by ETR rank
+    filtered.sort((a, b) => (a.etr_rank || 999) - (b.etr_rank || 999));
+    
+    return filtered.slice(0, 10);
+  }, [getAvailablePlayersForDraft]);
+
   // Memoized search query handler  
   const handleSearchQueryChange = useCallback((value) => {
     setSearchQuery(value);
