@@ -158,7 +158,19 @@ const AuctionTracker = () => {
     return 'text-red-400';
   };
 
-  // Calculate which positions a team still needs
+  // Get position-specific color classes for badges
+  const getPositionColorClass = (position) => {
+    switch (position) {
+      case 'QB': return 'border-yellow-400 text-yellow-300 bg-yellow-500/10';
+      case 'RB': return 'border-sky-400 text-sky-300 bg-sky-500/10';
+      case 'WR': return 'border-green-400 text-green-300 bg-green-500/10';
+      case 'TE': return 'border-pink-400 text-pink-300 bg-pink-500/10';
+      case 'DST': return 'border-orange-400 text-orange-300 bg-orange-500/10';
+      case 'K': return 'border-purple-400 text-purple-300 bg-purple-500/10';
+      case 'BENCH': return 'border-slate-400 text-slate-300 bg-slate-500/10';
+      default: return 'border-gray-400 text-gray-300 bg-gray-500/10';
+    }
+  };
   const calculatePositionsNeeded = (team, positionRequirements) => {
     const positionsNeeded = [];
     const positionsFilled = {};
