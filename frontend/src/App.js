@@ -171,6 +171,7 @@ const AuctionTracker = () => {
       default: return 'border-gray-400 text-gray-300 bg-gray-500/10';
     }
   };
+  // Calculate which positions a team still needs
   const calculatePositionsNeeded = (team, positionRequirements) => {
     const positionsNeeded = [];
     const positionsFilled = {};
