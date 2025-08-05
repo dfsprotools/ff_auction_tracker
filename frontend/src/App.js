@@ -340,7 +340,7 @@ const AuctionTracker = () => {
           >
             <Settings className="h-5 w-5 mr-2" />
             Commissioner
-            <div className="text-sm text-emerald-200 ml-2">(Full Admin Access)</div>
+            <div className="text-sm text-emerald-200 ml-2">(Requires Password)</div>
           </Button>
 
           {/* Team Selection */}
@@ -366,6 +366,52 @@ const AuctionTracker = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Commissioner Password Dialog */}
+      {showPasswordPrompt && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <Card className="bg-white/10 backdrop-blur-md border-white/20 w-full max-w-sm">
+            <CardHeader>
+              <CardTitle className="text-white text-xl text-center">Commissioner Access</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Input
+                type="password"
+                placeholder="Enter commissioner password"
+                value={commissionerPassword}
+                onChange={(e) => setCommissionerPassword(e.target.value)}
+                className="bg-slate-700 border-slate-600 text-white"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') authenticateCommissioner();
+                  if (e.key === 'Escape') setShowPasswordPrompt(false);
+                }}
+                autoFocus
+              />
+              <div className="flex space-x-2">
+                <Button
+                  onClick={authenticateCommissioner}
+                  className="flex-1 bg-emerald-600 hover:bg-emerald-700"
+                >
+                  Login
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setShowPasswordPrompt(false);
+                    setCommissionerPassword('');
+                  }}
+                  className="border-slate-600 text-slate-300 hover:bg-slate-700"
+                >
+                  Cancel
+                </Button>
+              </div>
+              <div className="text-xs text-slate-400 text-center">
+                Demo password: draft2024
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   );
 
