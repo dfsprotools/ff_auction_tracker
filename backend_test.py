@@ -596,6 +596,45 @@ class FantasyFootballAPITester:
             self.log_test("FLEX Position - No FLEX", False, f"Error: {str(e)}")
             return False
 
+    def test_josh_allen_single_letter_search(self):
+        """URGENT TEST: Test if Josh Allen appears when typing single letter 'J'"""
+        try:
+            # Test search for single letter "J"
+            response = requests.get(f"{self.api_url}/players/search", params={"q": "J", "limit": 10}, timeout=10)
+            success = response.status_code == 200
+            
+            if success:
+                players = response.json()
+                josh_allen_found = any(player['name'] == 'Josh Allen' for player in players)
+                
+                # Get Josh Allen details if found
+                josh_allen_details = ""
+                josh_allen_position = -1
+                if josh_allen_found:
+                    for i, player in enumerate(players):
+                        if player['name'] == 'Josh Allen':
+                            josh_allen_details = f", Position: {player['position']}, Team: {player['nfl_team']}, Rank: {player.get('etr_rank', 'N/A')}"
+                            josh_allen_position = i + 1
+                            break
+                
+                details = f"Single letter 'J' search returned {len(players)} players. Josh Allen found: {josh_allen_found}"
+                if josh_allen_found:
+                    details += f" (appears at position #{josh_allen_position}){josh_allen_details}"
+                
+                # List first 5 players for debugging
+                if players:
+                    details += f". First 5 results: {[p['name'] for p in players[:5]]}"
+                
+                self.log_test("URGENT: Josh Allen Single Letter 'J' Search", josh_allen_found, details)
+                return josh_allen_found
+            else:
+                self.log_test("URGENT: Josh Allen Single Letter 'J' Search", False, f"Status: {response.status_code}")
+                return False
+                
+        except Exception as e:
+            self.log_test("URGENT: Josh Allen Single Letter 'J' Search", False, f"Error: {str(e)}")
+            return False
+
     def test_league_settings_edge_cases(self):
         """Test edge cases for league settings"""
         if not self.league_id:
