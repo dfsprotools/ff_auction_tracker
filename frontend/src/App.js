@@ -215,6 +215,23 @@ const AuctionTracker = () => {
     setTempTeamName('');
   };
 
+  const searchPlayers = async (query = '') => {
+    if (!query.trim()) {
+      setSearchResults([]);
+      return;
+    }
+    
+    try {
+      const response = await axios.get(`${API}/players/search`, {
+        params: { q: query, limit: 10 }
+      });
+      setSearchResults(response.data || []);
+    } catch (error) {
+      console.error('Error searching players:', error);
+      setSearchResults([]);
+    }
+  };
+
   const searchPlayersForDraft = async (query = '') => {
     if (!query.trim()) {
       setSearchResults([]);
