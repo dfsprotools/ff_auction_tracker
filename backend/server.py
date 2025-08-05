@@ -274,6 +274,97 @@ async def create_demo_league():
     await db.leagues.insert_one(league.dict())
     return league
 
+@api_router.put("/leagues/{league_id}/settings")
+async def update_league_settings(league_id: str, settings: LeagueCreate):
+    """Update league settings"""
+    try:
+        league_data = await db.leagues.find_one({"id": league_id})
+        if not league_data:
+            raise HTTPException(status_code=404, detail="League not found")
+        
+        league = League(**league_data)
+        
+        # Update basic settings
+        league.name = settings.name
+        league.total_teams = settings.total_teams
+        league.budget_per_team = settings.budget_per_team
+        league.roster_size = settings.roster_size
+        league.position_requirements = settings.position_requirements
+        
+        # Update team budgets and recalculate metrics if budget changed
+        if league.budget_per_team != league_data['budget_per_team']:
+            for i, team in enumerate(league.teams):
+                # Adjust remaining budget proportionally
+                old_budget = league_data['budget_per_team']
+                spent_ratio = team.spent / old_budget if old_budget > 0 else 0
+                team.budget = settings.budget_per_team
+                team.remaining = team.budget - team.spent
+                team = calculate_team_metrics(team, league.position_requirements, league.roster_size)
+                league.teams[i] = team
+        
+        # Adjust number of teams if changed
+        current_team_count = len(league.teams)
+        if settings.total_teams > current_team_count:
+            # Add new teams
+            for i in range(current_team_count, settings.total_teams):
+                new_team = Team(
+                    name=f"Team {i + 1}",
+                    budget=settings.budget_per_team,
+                    remaining=settings.budget_per_team,
+                    roster_spots=settings.position_requirements.copy()
+                )
+                new_team = calculate_team_metrics(new_team, settings.position_requirements, settings.roster_size)
+                league.teams.append(new_team)
+        elif settings.total_teams < current_team_count:
+            # Remove teams (only if they have no players)
+            teams_to_remove = []
+            for i in range(settings.total_teams, current_team_count):
+                if len(league.teams[i].roster) == 0:
+                    teams_to_remove.append(i)
+                else:
+                    raise HTTPException(status_code=400, detail=f"Cannot remove Team {i+1} - they have drafted players")
+            
+            # Remove teams in reverse order to maintain indices
+            for i in reversed(teams_to_remove):
+                league.teams.pop(i)
+        
+        # Save updated league
+        await db.leagues.replace_one({"id": league_id}, league.dict())
+        return league
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error updating league settings: {str(e)}")
+
+@api_router.put("/leagues/{league_id}/teams/{team_id}")
+async def update_team(league_id: str, team_id: str, team_data: dict):
+    """Update team details"""
+    try:
+        league_data = await db.leagues.find_one({"id": league_id})
+        if not league_data:
+            raise HTTPException(status_code=404, detail="League not found")
+        
+        league = League(**league_data)
+        
+        # Find and update team
+        team_found = False
+        for i, team in enumerate(league.teams):
+            if team.id == team_id:
+                if 'name' in team_data:
+                    team.name = team_data['name']
+                league.teams[i] = team
+                team_found = True
+                break
+        
+        if not team_found:
+            raise HTTPException(status_code=404, detail="Team not found")
+        
+        # Save updated league
+        await db.leagues.replace_one({"id": league_id}, league.dict())
+        return league
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error updating team: {str(e)}")
+
 # Sample NFL players data
 @api_router.get("/players/search")
 async def search_players(q: str = "", position: str = "", limit: int = 50):
