@@ -304,13 +304,22 @@ const AuctionTracker = () => {
               </div>
             </div>
           </div>
-          <Dialog open={showAddPick} onOpenChange={setShowAddPick}>
-            <DialogTrigger asChild>
-              <Button className="bg-emerald-600 hover:bg-emerald-700 text-white">
-                <Plus className="h-4 w-4 mr-2" />
-                Draft Player
-              </Button>
-            </DialogTrigger>
+          <div className="flex space-x-3">
+            <Button 
+              onClick={() => setShowLeagueSettings(true)}
+              variant="outline"
+              className="border-slate-600 text-slate-300 hover:bg-slate-700"
+            >
+              <Settings className="h-4 w-4 mr-2" />
+              League Settings
+            </Button>
+            <Dialog open={showAddPick} onOpenChange={setShowAddPick}>
+              <DialogTrigger asChild>
+                <Button className="bg-emerald-600 hover:bg-emerald-700 text-white">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Draft Player
+                </Button>
+              </DialogTrigger>
             <DialogContent className="bg-slate-800 border-slate-700">
               <DialogHeader>
                 <DialogTitle className="text-white">Draft Player</DialogTitle>
