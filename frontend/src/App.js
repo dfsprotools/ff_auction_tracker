@@ -247,11 +247,36 @@ const AuctionTracker = () => {
           <Card key={team.id} className="bg-white/10 backdrop-blur-md border-white/20">
             <CardHeader className="pb-3">
               <CardTitle className="text-white text-lg">{team.name}</CardTitle>
-              <div className="flex justify-between text-sm">
-                <span className="text-slate-300">Spent: ${team.spent}</span>
-                <span className="text-emerald-400 font-medium">Left: ${team.remaining}</span>
+              <div className="space-y-2">
+                {/* Budget Summary */}
+                <div className="flex justify-between text-sm">
+                  <span className="text-slate-300">Spent: ${team.spent}</span>
+                  <span className="text-emerald-400 font-medium">Left: ${team.remaining}</span>
+                </div>
+                
+                {/* MAX BID - Most Important */}
+                <div className="bg-slate-800/50 rounded-lg p-2 border-l-4 border-emerald-500">
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-300 text-sm font-medium">MAX BID:</span>
+                    <span className={`text-lg ${getMaxBidColorClass(team.max_bid)}`}>
+                      ${team.max_bid}
+                    </span>
+                  </div>
+                </div>
+                
+                {/* Additional Metrics */}
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div className="text-slate-400">
+                    Spots Left: <span className="text-white font-medium">{team.remaining_spots || 0}</span>
+                  </div>
+                  <div className="text-slate-400">
+                    Avg/Spot: <span className="text-white font-medium">${team.avg_per_spot || 0}</span>
+                  </div>
+                  <div className="text-slate-400 col-span-2">
+                    Budget Used: <span className={getBudgetUtilizationColor(team.budget_utilization)}>{team.budget_utilization || 0}%</span>
+                  </div>
+                </div>
               </div>
-              <div className="text-xs text-slate-400">Max Bid: ${team.max_bid}</div>
             </CardHeader>
             <CardContent>
               <div className="space-y-2 max-h-48 overflow-y-auto">
