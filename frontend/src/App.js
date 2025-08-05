@@ -1010,12 +1010,17 @@ const AuctionTracker = () => {
             type="number"
             placeholder="Winning bid amount"
             value={bidAmount}
-            onChange={(e) => setBidAmount(e.target.value)}
+            onChange={(e) => {
+              e.preventDefault();
+              setBidAmount(e.target.value);
+            }}
+            onInput={(e) => setBidAmount(e.target.value)}
             className="bg-slate-700 border-slate-600 text-white"
             min="1"
             step="1"
             inputMode="numeric"
             autoComplete="off"
+            data-testid="bid-amount-input"
           />
 
           {searchResults.length === 1 && selectedTeam && bidAmount && parseInt(bidAmount) > 0 && (
