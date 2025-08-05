@@ -528,54 +528,111 @@ const AuctionTracker = () => {
         <div className="text-2xl text-slate-300">Live Auction Draft</div>
       </div>
       
-      <div className="grid grid-cols-2 lg:grid-cols-3 gap-6">
-        {league.teams.map(team => (
-          <Card key={team.id} className="bg-white/10 backdrop-blur-md border-white/20">
-            <CardHeader>
-              <CardTitle className="text-white text-2xl">{team.name}</CardTitle>
-              <div className="space-y-3">
-                {/* Budget Summary */}
-                <div className="flex justify-between text-lg">
-                  <span className="text-slate-300">Spent: ${team.spent}</span>
-                  <span className="text-emerald-400 font-bold">Left: ${team.remaining}</span>
-                </div>
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-8">
+        {league.teams.map(team => {
+          // Calculate additional metrics for TV display
+          const avgPerRemaining = team.remaining_spots > 0 ? (team.remaining / team.remaining_spots).toFixed(2) : '0.00';
+          const teamRating = team.roster.length > 0 ? 
+            (team.roster.reduce((sum, pick) => sum + (pick.player.etr_rank || 999), 0) / team.roster.length).toFixed(1) : 
+            'N/A';
+          const topPlayer = team.roster.length > 0 ? 
+            team.roster.reduce((max, pick) => pick.amount > max.amount ? pick : max, team.roster[0]) : 
+            null;
+          
+          // Calculate positions needed
+          const positionsNeeded = calculatePositionsNeeded(team, league.position_requirements);
+          
+          return (
+            <Card key={team.id} className="bg-white/10 backdrop-blur-md border-white/20">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-white text-3xl mb-4">{team.name}</CardTitle>
                 
-                {/* CRITICAL: MAX BID - Large and Prominent for TV */}
-                <div className="bg-slate-900/70 rounded-lg p-4 border-2 border-emerald-500/50">
-                  <div className="text-center">
-                    <div className="text-slate-300 text-sm uppercase tracking-wide">MAX BID</div>
-                    <div className={`text-3xl font-bold ${getMaxBidColorClass(team.max_bid)}`}>
-                      ${team.max_bid}
+                {/* CRITICAL VALUES - Side by Side */}
+                <div className="grid grid-cols-2 gap-4 mb-4">
+                  <div className="bg-slate-900/70 rounded-lg p-4 border-2 border-emerald-500/50">
+                    <div className="text-center">
+                      <div className="text-slate-300 text-sm uppercase tracking-wide">MAX BID</div>
+                      <div className={`text-4xl font-bold ${getMaxBidColorClass(team.max_bid)}`}>
+                        ${team.max_bid}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-slate-900/70 rounded-lg p-4 border-2 border-blue-500/50">
+                    <div className="text-center">
+                      <div className="text-slate-300 text-sm uppercase tracking-wide">BUDGET</div>
+                      <div className="text-4xl font-bold text-blue-400">
+                        ${team.remaining}
+                      </div>
                     </div>
                   </div>
                 </div>
                 
-                {/* Roster and Key Metrics */}
-                <div className="flex justify-between text-base">
-                  <span className="text-slate-400">
-                    Roster: <span className="text-white font-medium">{team.roster.length}/{league.roster_size}</span>
-                  </span>
-                  <span className="text-slate-400">
-                    Left: <span className="text-white font-medium">{team.remaining_spots || 0} spots</span>
-                  </span>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-lg text-slate-400 mb-2">
-                Roster: {team.roster.length}/{league.roster_size}
-              </div>
-              <div className="space-y-2">
-                {team.roster.slice(-3).map(pick => (
-                  <div key={pick.id} className="flex justify-between bg-slate-800/50 rounded p-2">
-                    <span className="text-white">{pick.player.name}</span>
-                    <span className="text-emerald-400">${pick.amount}</span>
+                {/* SECONDARY INFORMATION */}
+                <div className="space-y-2 text-lg">
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Roster:</span>
+                    <span className="text-white font-medium">{team.roster.length}/{league.roster_size}</span>
                   </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+                  
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Avg/Remaining:</span>
+                    <span className="text-white font-medium">${avgPerRemaining}</span>
+                  </div>
+                  
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Team Rating:</span>
+                    <span className="text-white font-medium">{teamRating}</span>
+                  </div>
+                  
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Top Player:</span>
+                    <span className="text-white font-medium">
+                      {topPlayer ? `${topPlayer.player.name} ($${topPlayer.amount})` : 'None yet'}
+                    </span>
+                  </div>
+                </div>
+                
+                {/* POSITIONS NEEDED */}
+                <div className="mt-4">
+                  <div className="text-slate-400 text-lg mb-2">Positions Needed:</div>
+                  <div className="flex flex-wrap gap-2">
+                    {positionsNeeded.map((pos, index) => (
+                      <Badge 
+                        key={index} 
+                        variant="outline" 
+                        className={`text-sm ${
+                          pos.type === 'starter' ? 'border-red-500 text-red-400' :
+                          pos.type === 'bench' ? 'border-yellow-500 text-yellow-400' :
+                          'border-green-500 text-green-400'
+                        }`}
+                      >
+                        {pos.position}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              </CardHeader>
+              
+              <CardContent>
+                {/* RECENT PICKS */}
+                {team.roster.length > 0 && (
+                  <div>
+                    <div className="text-slate-400 text-lg mb-2">Recent Picks:</div>
+                    <div className="space-y-2">
+                      {team.roster.slice(-3).map(pick => (
+                        <div key={pick.id} className="flex justify-between bg-slate-800/50 rounded p-2">
+                          <span className="text-white text-lg">{pick.player.name}</span>
+                          <span className="text-emerald-400 font-bold text-lg">${pick.amount}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
     </div>
   );
