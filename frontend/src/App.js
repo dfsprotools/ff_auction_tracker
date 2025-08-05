@@ -351,8 +351,12 @@ const AuctionTracker = () => {
                       >
                         <div className="flex items-center justify-between">
                           <div>
-                            <div className="text-white font-medium">{player.name}</div>
-                            <div className="text-slate-400 text-sm">{player.nfl_team} • Rank #{player.etr_rank}</div>
+                            <div className="text-white font-medium">
+                              {player.name} ({player.position}, {player.nfl_team})
+                            </div>
+                            <div className="text-slate-400 text-sm">
+                              ETR Rank #{player.etr_rank} • {player.pos_rank} • ADP: {player.adp}
+                            </div>
                           </div>
                           <Badge variant="secondary" className="bg-slate-600">
                             {player.position}
