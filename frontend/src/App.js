@@ -590,7 +590,168 @@ const AuctionTracker = () => {
     );
   }
 
-  const ControlInterface = () => (
+  // Player status helper
+  const getPlayerStatus = (player) => {
+    const drafted = league.all_picks.find(pick => 
+      pick.player.name === player.name && pick.player.position === player.position
+    );
+    
+    if (drafted) {
+      const draftingTeam = league.teams.find(team => team.id === drafted.team_id);
+      return {
+        status: 'drafted',
+        team: draftingTeam?.name || 'Unknown',
+        amount: drafted.amount
+      };
+    }
+    return { status: 'available' };
+  };
+
+  // Filter players by position
+  const getFilteredPlayers = () => {
+    let filtered = playerDatabase;
+    
+    if (activePosition !== 'ALL') {
+      filtered = filtered.filter(player => player.position === activePosition);
+    }
+    
+    if (searchQuery) {
+      filtered = filtered.filter(player => 
+        player.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        player.nfl_team.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+    
+    return filtered.slice(0, 100); // Limit for performance
+  };
+
+  // Calculate suggested value for a player
+  const getSuggestedValue = (player) => {
+    const position = player.position;
+    const rank = player.etr_rank || 999;
+    
+    // Basic value formulas by position
+    switch (position) {
+      case 'QB':
+        if (rank <= 3) return 35 + (4 - rank) * 5; // $40-50
+        if (rank <= 8) return 20 + (9 - rank) * 2; // $22-28
+        if (rank <= 15) return 10 + (16 - rank) * 1; // $11-17
+        return Math.max(1, 8 - Math.floor((rank - 15) / 5));
+      
+      case 'RB':
+      case 'WR':
+        if (rank <= 12) return 45 + (13 - rank) * 3; // $48-78
+        if (rank <= 24) return 25 + (25 - rank) * 1.5; // $26.5-43
+        if (rank <= 36) return 15 + (37 - rank) * 0.8; // $15.8-24.2
+        return Math.max(1, 12 - Math.floor((rank - 36) / 8));
+      
+      case 'TE':
+        if (rank <= 6) return 20 + (7 - rank) * 2; // $22-32
+        if (rank <= 15) return 8 + (16 - rank) * 1.2; // $9.2-19
+        return Math.max(1, 6 - Math.floor((rank - 15) / 10));
+      
+      case 'K':
+      case 'DST':
+        return Math.max(1, 3 - Math.floor(rank / 10));
+      
+      default:
+        return 1;
+    }
+  };
+
+  const PlayerRankingsDashboard = () => (
+    <div className="space-y-4">
+      {/* Position Tabs */}
+      <div className="flex flex-wrap gap-2">
+        {['ALL', 'QB', 'RB', 'WR', 'TE', 'K', 'DST'].map(position => (
+          <Button
+            key={position}
+            onClick={() => setActivePosition(position)}
+            variant={activePosition === position ? "default" : "outline"}
+            className={`${
+              activePosition === position 
+                ? 'bg-emerald-600 hover:bg-emerald-700 text-white' 
+                : 'border-slate-600 text-slate-300 hover:bg-slate-700'
+            }`}
+          >
+            {position}
+          </Button>
+        ))}
+      </div>
+
+      {/* Search */}
+      <div className="relative">
+        <Input
+          placeholder="Search players..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="bg-slate-700 border-slate-600 text-white pr-10"
+        />
+        <Search className="absolute right-3 top-3 h-4 w-4 text-slate-400" />
+      </div>
+
+      {/* Player List */}
+      <div className="space-y-2 max-h-96 overflow-y-auto">
+        {getFilteredPlayers().map((player, index) => {
+          const playerStatus = getPlayerStatus(player);
+          const suggestedValue = getSuggestedValue(player);
+          const userValue = userValues[`${player.name}-${player.position}`] || suggestedValue;
+          const isTarget = userTargets.includes(`${player.name}-${player.position}`);
+          
+          return (
+            <div
+              key={`${player.name}-${player.position}-${index}`}
+              className={`p-3 rounded-lg border ${
+                playerStatus.status === 'drafted' 
+                  ? 'bg-red-900/20 border-red-500/30 text-red-300'
+                  : 'bg-slate-700/50 border-slate-600 text-white hover:bg-slate-700'
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center space-x-2">
+                    <span className="font-medium">
+                      {index + 1}. {player.name}
+                    </span>
+                    <Badge className={getPositionColorClass(player.position)}>
+                      {player.position}
+                    </Badge>
+                    <span className="text-slate-400">({player.nfl_team})</span>
+                    {isTarget && <span className="text-yellow-400">⭐</span>}
+                  </div>
+                  
+                  <div className="text-sm text-slate-400 mt-1">
+                    ETR #{player.etr_rank} • {player.pos_rank}
+                    {playerStatus.status === 'drafted' && (
+                      <span className="text-red-400 ml-2">
+                        → {playerStatus.team} (${playerStatus.amount})
+                      </span>
+                    )}
+                  </div>
+                </div>
+                
+                <div className="text-right">
+                  <div className="text-emerald-400 font-medium">
+                    Suggested: ${suggestedValue}
+                  </div>
+                  {userValue !== suggestedValue && (
+                    <div className="text-blue-400 text-sm">
+                      My Value: ${userValue}
+                    </div>
+                  )}
+                  <div className={`text-sm font-medium ${
+                    playerStatus.status === 'drafted' ? 'text-red-400' : 'text-green-400'
+                  }`}>
+                    {playerStatus.status === 'drafted' ? 'UNAVAILABLE' : 'AVAILABLE'}
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
     <div className="space-y-6">
       {/* Header */}
       <div className="bg-white/10 backdrop-blur-md rounded-lg p-6 border border-white/20">
