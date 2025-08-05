@@ -24,6 +24,15 @@ const AuctionTracker = () => {
   const [bidAmount, setBidAmount] = useState('');
   const [showAddPick, setShowAddPick] = useState(false);
   const [activeView, setActiveView] = useState('control');
+  const [showLeagueSettings, setShowLeagueSettings] = useState(false);
+  const [editingTeam, setEditingTeam] = useState(null);
+  const [tempTeamName, setTempTeamName] = useState('');
+  const [leagueSettings, setLeagueSettings] = useState({
+    name: '',
+    total_teams: 12,
+    budget_per_team: 300,
+    roster_size: 16
+  });
 
   // Load demo league on component mount
   useEffect(() => {
