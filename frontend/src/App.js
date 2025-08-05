@@ -958,7 +958,7 @@ const AuctionTracker = () => {
                   key={index}
                   onClick={() => {
                     setSearchQuery(player.name);
-                    setSearchResults([player]);
+                    setSearchResults([player]); // Keep the selected player in results
                   }}
                   className="p-2 bg-slate-700 rounded cursor-pointer hover:bg-slate-600 transition-colors"
                 >
