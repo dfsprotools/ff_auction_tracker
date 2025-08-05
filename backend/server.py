@@ -384,7 +384,11 @@ async def search_players(q: str = "", position: str = "", limit: int = 500):
         response = requests.get(csv_url, headers=headers, timeout=30)
         response.raise_for_status()  # Raise exception for bad status codes
         
-        csv_data = StringIO(response.text)
+        # Remove BOM if present and create StringIO
+        csv_text = response.text
+        if csv_text.startswith('\ufeff'):
+            csv_text = csv_text[1:]
+        csv_data = StringIO(csv_text)
         
         players = []
         csv_reader = csv.DictReader(csv_data)
@@ -392,8 +396,11 @@ async def search_players(q: str = "", position: str = "", limit: int = 500):
         for row in csv_reader:
             # Clean and parse the data
             try:
+                # Handle potential BOM in first column name
+                name_key = "Name" if "Name" in row else list(row.keys())[0]
+                
                 player = {
-                    "name": row["Name"].strip('"'),
+                    "name": row[name_key].strip('"'),
                     "position": row["Position"].strip('"'),
                     "nfl_team": row["Team"].strip('"'),
                     "etr_rank": int(row["ETR Rank"].strip('"')) if row["ETR Rank"].strip('"').isdigit() else 999,
