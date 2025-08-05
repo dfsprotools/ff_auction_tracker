@@ -75,7 +75,7 @@ class LeagueCreate(BaseModel):
     roster_size: int = 16
     position_requirements: Dict[str, int] = {
         "QB": 1, "RB": 2, "WR": 2, "TE": 1, 
-        "K": 1, "DEF": 1
+        "FLEX": 1, "K": 1, "DEF": 1
     }
 
 class PlayerCreate(BaseModel):
