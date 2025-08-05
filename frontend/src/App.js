@@ -1034,12 +1034,7 @@ const AuctionTracker = () => {
             <Input
               placeholder="Search players..."
               value={searchQuery}
-              onChange={(e) => {
-                const value = e.target.value;
-                setSearchQuery(value);
-                const filteredResults = getFilteredDraftPlayers(value);
-                setSearchResults(filteredResults);
-              }}
+              onChange={(e) => handleSearchQueryChange(e.target.value)}
               className="bg-slate-700 border-slate-600 text-white pr-10"
             />
             <Search className="absolute right-3 top-3 h-4 w-4 text-slate-400" />
