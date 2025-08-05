@@ -44,6 +44,12 @@ const AuctionTracker = () => {
       setLoading(true);
       const response = await axios.post(`${API}/demo-league`);
       setLeague(response.data);
+      setLeagueSettings({
+        name: response.data.name,
+        total_teams: response.data.total_teams,
+        budget_per_team: response.data.budget_per_team,
+        roster_size: response.data.roster_size
+      });
       console.log('Demo league loaded:', response.data);
     } catch (error) {
       console.error('Error loading demo league:', error);
@@ -51,6 +57,43 @@ const AuctionTracker = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const updateLeagueSettings = async () => {
+    try {
+      const response = await axios.put(`${API}/leagues/${league.id}/settings`, leagueSettings);
+      setLeague(response.data);
+      setShowLeagueSettings(false);
+      toast.success('League settings updated successfully!');
+    } catch (error) {
+      console.error('Error updating league settings:', error);
+      toast.error('Failed to update league settings');
+    }
+  };
+
+  const updateTeamName = async (teamId, newName) => {
+    try {
+      const response = await axios.put(`${API}/leagues/${league.id}/teams/${teamId}`, {
+        name: newName
+      });
+      setLeague(response.data);
+      setEditingTeam(null);
+      setTempTeamName('');
+      toast.success('Team name updated!');
+    } catch (error) {
+      console.error('Error updating team name:', error);
+      toast.error('Failed to update team name');
+    }
+  };
+
+  const startEditingTeam = (team) => {
+    setEditingTeam(team.id);
+    setTempTeamName(team.name);
+  };
+
+  const cancelEditingTeam = () => {
+    setEditingTeam(null);
+    setTempTeamName('');
   };
 
   const searchPlayers = async (query = '') => {
