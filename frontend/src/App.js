@@ -158,6 +158,101 @@ const AuctionTracker = () => {
     return 'text-red-400';
   };
 
+  const LeagueSettingsDialog = () => (
+    <Dialog open={showLeagueSettings} onOpenChange={setShowLeagueSettings}>
+      <DialogContent className="bg-slate-800 border-slate-700 max-w-md">
+        <DialogHeader>
+          <DialogTitle className="text-white">League Settings</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4">
+          <div>
+            <Label htmlFor="league-name" className="text-slate-300">League Name</Label>
+            <Input
+              id="league-name"
+              value={leagueSettings.name}
+              onChange={(e) => setLeagueSettings({...leagueSettings, name: e.target.value})}
+              className="bg-slate-700 border-slate-600 text-white"
+            />
+          </div>
+          
+          <div>
+            <Label htmlFor="total-teams" className="text-slate-300">Number of Teams</Label>
+            <Select 
+              value={leagueSettings.total_teams.toString()} 
+              onValueChange={(value) => setLeagueSettings({...leagueSettings, total_teams: parseInt(value)})}
+            >
+              <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="bg-slate-700 border-slate-600">
+                {[8, 10, 12, 14, 16, 18, 20].map(num => (
+                  <SelectItem key={num} value={num.toString()} className="text-white">
+                    {num} Teams
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <Label htmlFor="budget" className="text-slate-300">Budget Per Team</Label>
+            <Select 
+              value={leagueSettings.budget_per_team.toString()} 
+              onValueChange={(value) => setLeagueSettings({...leagueSettings, budget_per_team: parseInt(value)})}
+            >
+              <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="bg-slate-700 border-slate-600">
+                {[100, 150, 200, 250, 300, 400, 500].map(amount => (
+                  <SelectItem key={amount} value={amount.toString()} className="text-white">
+                    ${amount}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <Label htmlFor="roster-size" className="text-slate-300">Roster Spots</Label>
+            <Select 
+              value={leagueSettings.roster_size.toString()} 
+              onValueChange={(value) => setLeagueSettings({...leagueSettings, roster_size: parseInt(value)})}
+            >
+              <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="bg-slate-700 border-slate-600">
+                {[10, 12, 14, 15, 16, 18, 20, 22, 25].map(num => (
+                  <SelectItem key={num} value={num.toString()} className="text-white">
+                    {num} Spots
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex space-x-2 pt-4">
+            <Button 
+              onClick={updateLeagueSettings}
+              className="flex-1 bg-emerald-600 hover:bg-emerald-700"
+            >
+              <Save className="h-4 w-4 mr-2" />
+              Save Settings
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={() => setShowLeagueSettings(false)}
+              className="border-slate-600 text-slate-300 hover:bg-slate-700"
+            >
+              Cancel
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+
   const undoPick = async (pickId) => {
     try {
       await axios.delete(`${API}/leagues/${league.id}/picks/${pickId}`);
