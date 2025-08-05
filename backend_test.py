@@ -329,6 +329,180 @@ class FantasyFootballAPITester:
             self.log_test("Undo Functionality", False, f"Error: {str(e)}")
             return False
 
+    def test_league_settings_no_kicker(self):
+        """Test updating league settings for no-kicker league (K=0)"""
+        if not self.league_id:
+            self.log_test("League Settings - No Kicker", False, "No league ID available")
+            return False
+            
+        try:
+            # Update league settings to remove kickers (K=0)
+            settings_data = {
+                "name": "Pipelayer Pro Bowl",
+                "total_teams": 14,
+                "budget_per_team": 300,
+                "roster_size": 16,
+                "position_requirements": {
+                    "QB": 1,
+                    "RB": 2,
+                    "WR": 2,
+                    "TE": 1,
+                    "K": 0,  # No kickers
+                    "DEF": 1
+                }
+            }
+            
+            response = requests.put(f"{self.api_url}/leagues/{self.league_id}/settings", json=settings_data, timeout=10)
+            success = response.status_code == 200
+            
+            if success:
+                updated_league = response.json()
+                
+                # Verify position requirements updated
+                pos_reqs = updated_league['position_requirements']
+                no_kicker_correct = (
+                    pos_reqs['K'] == 0 and
+                    pos_reqs['QB'] == 1 and
+                    pos_reqs['RB'] == 2 and
+                    pos_reqs['WR'] == 2 and
+                    pos_reqs['TE'] == 1 and
+                    pos_reqs['DEF'] == 1
+                )
+                
+                # Calculate total starters and bench
+                total_starters = sum(pos_reqs.values())
+                bench_spots = updated_league['roster_size'] - total_starters
+                
+                details = f"K=0 league created. Starters: {total_starters}, Bench: {bench_spots}"
+                details += f", Position requirements: {pos_reqs}"
+                
+                overall_success = success and no_kicker_correct and total_starters == 7 and bench_spots == 9
+                self.log_test("League Settings - No Kicker", overall_success, details)
+                return overall_success
+            else:
+                self.log_test("League Settings - No Kicker", False, f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_test("League Settings - No Kicker", False, f"Error: {str(e)}")
+            return False
+
+    def test_league_settings_superflex(self):
+        """Test updating league settings for superflex league (QB=2)"""
+        if not self.league_id:
+            self.log_test("League Settings - Superflex", False, "No league ID available")
+            return False
+            
+        try:
+            # Update league settings for superflex (QB=2)
+            settings_data = {
+                "name": "Pipelayer Pro Bowl",
+                "total_teams": 14,
+                "budget_per_team": 300,
+                "roster_size": 16,
+                "position_requirements": {
+                    "QB": 2,  # Superflex
+                    "RB": 2,
+                    "WR": 2,
+                    "TE": 1,
+                    "K": 0,  # Keep no kickers from previous test
+                    "DEF": 1
+                }
+            }
+            
+            response = requests.put(f"{self.api_url}/leagues/{self.league_id}/settings", json=settings_data, timeout=10)
+            success = response.status_code == 200
+            
+            if success:
+                updated_league = response.json()
+                
+                # Verify position requirements updated
+                pos_reqs = updated_league['position_requirements']
+                superflex_correct = (
+                    pos_reqs['QB'] == 2 and  # Superflex
+                    pos_reqs['RB'] == 2 and
+                    pos_reqs['WR'] == 2 and
+                    pos_reqs['TE'] == 1 and
+                    pos_reqs['K'] == 0 and
+                    pos_reqs['DEF'] == 1
+                )
+                
+                # Calculate total starters and bench
+                total_starters = sum(pos_reqs.values())
+                bench_spots = updated_league['roster_size'] - total_starters
+                
+                details = f"Superflex league (QB=2, K=0). Starters: {total_starters}, Bench: {bench_spots}"
+                details += f", Position requirements: {pos_reqs}"
+                
+                overall_success = success and superflex_correct and total_starters == 8 and bench_spots == 8
+                self.log_test("League Settings - Superflex", overall_success, details)
+                return overall_success
+            else:
+                self.log_test("League Settings - Superflex", False, f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_test("League Settings - Superflex", False, f"Error: {str(e)}")
+            return False
+
+    def test_league_settings_edge_cases(self):
+        """Test edge cases for league settings"""
+        if not self.league_id:
+            self.log_test("League Settings - Edge Cases", False, "No league ID available")
+            return False
+            
+        try:
+            # Test extreme case: All positions set to 0 except one
+            settings_data = {
+                "name": "Pipelayer Pro Bowl",
+                "total_teams": 14,
+                "budget_per_team": 300,
+                "roster_size": 16,
+                "position_requirements": {
+                    "QB": 0,
+                    "RB": 0,
+                    "WR": 1,  # Only WR required
+                    "TE": 0,
+                    "K": 0,
+                    "DEF": 0
+                }
+            }
+            
+            response = requests.put(f"{self.api_url}/leagues/{self.league_id}/settings", json=settings_data, timeout=10)
+            success = response.status_code == 200
+            
+            if success:
+                updated_league = response.json()
+                
+                # Verify position requirements updated
+                pos_reqs = updated_league['position_requirements']
+                edge_case_correct = (
+                    pos_reqs['QB'] == 0 and
+                    pos_reqs['RB'] == 0 and
+                    pos_reqs['WR'] == 1 and
+                    pos_reqs['TE'] == 0 and
+                    pos_reqs['K'] == 0 and
+                    pos_reqs['DEF'] == 0
+                )
+                
+                # Calculate total starters and bench
+                total_starters = sum(pos_reqs.values())
+                bench_spots = updated_league['roster_size'] - total_starters
+                
+                details = f"Edge case: Only WR=1. Starters: {total_starters}, Bench: {bench_spots}"
+                details += f", Position requirements: {pos_reqs}"
+                
+                overall_success = success and edge_case_correct and total_starters == 1 and bench_spots == 15
+                self.log_test("League Settings - Edge Cases", overall_success, details)
+                return overall_success
+            else:
+                self.log_test("League Settings - Edge Cases", False, f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_test("League Settings - Edge Cases", False, f"Error: {str(e)}")
+            return False
+
     def run_all_tests(self):
         """Run all backend API tests"""
         print("🏈 Starting Fantasy Football Auction Draft Tracker API Tests")
