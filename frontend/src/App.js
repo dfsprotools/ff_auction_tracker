@@ -224,35 +224,36 @@ const AuctionTracker = () => {
   // Filter players for draft based on search query
   const getFilteredDraftPlayers = useCallback((query) => {
     const availablePlayers = getAvailablePlayersForDraft();
-    
+
     if (!query.trim()) return [];
-    
+
     const searchQuery = query.toLowerCase();
-    let filtered = availablePlayers.filter(player => 
+    let filtered = availablePlayers.filter(player =>
       player.name.toLowerCase().includes(searchQuery) ||
       player.nfl_team.toLowerCase().includes(searchQuery)
     );
-    
-    // For single letter searches, prioritize popular players
+
+    // For single letter searches, properly prioritize players whose FIRST NAME starts with that letter
     if (query.length === 1) {
       const priority = [];
       const regular = [];
-      
+
       filtered.forEach(player => {
-        if (player.name.toLowerCase().startsWith(searchQuery) && 
-            ["Josh Allen", "Justin Jefferson", "Ja'Marr Chase"].includes(player.name)) {
+        const firstName = player.name.split(' ')[0].toLowerCase();
+        // Check if first name starts with the typed letter
+        if (firstName.startsWith(searchQuery)) {
           priority.push(player);
         } else {
           regular.push(player);
         }
       });
-      
+
       filtered = [...priority, ...regular];
     }
-    
-    // Sort by ETR rank
+
+    // Sort by ETR rank (better players first)
     filtered.sort((a, b) => (a.etr_rank || 999) - (b.etr_rank || 999));
-    
+
     return filtered.slice(0, 10);
   }, [getAvailablePlayersForDraft]);
 
