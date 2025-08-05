@@ -752,6 +752,28 @@ const AuctionTracker = () => {
       </div>
     </div>
   );
+
+  const ControlInterface = () => (
+    <div className="grid grid-cols-5 gap-6 h-screen p-4">
+      {/* Left Side: Player Rankings Dashboard (60%) */}
+      <div className="col-span-3 bg-white/5 backdrop-blur-md rounded-lg p-4 border border-white/20">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-bold text-white">Player Rankings</h2>
+          <div className="text-slate-400 text-sm">
+            {userRole === 'team' ? `${getCurrentUserTeam()?.name || 'My Team'} Dashboard` : 'Commissioner View'}
+          </div>
+        </div>
+        <PlayerRankingsDashboard />
+      </div>
+
+      {/* Right Side: Role-Based Controls (40%) */}
+      <div className="col-span-2">
+        {userRole === 'commissioner' ? <CommissionerControls /> : <TeamMemberControls />}
+      </div>
+    </div>
+  );
+
+  const CommissionerControls = () => (
     <div className="space-y-6">
       {/* Header */}
       <div className="bg-white/10 backdrop-blur-md rounded-lg p-6 border border-white/20">
