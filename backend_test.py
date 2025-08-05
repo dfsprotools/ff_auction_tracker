@@ -515,7 +515,10 @@ class FantasyFootballAPITester:
             self.test_player_search,
             self.test_draft_player_and_max_bid_update,
             self.test_draft_second_player,
-            self.test_undo_functionality
+            self.test_undo_functionality,
+            self.test_league_settings_no_kicker,
+            self.test_league_settings_superflex,
+            self.test_league_settings_edge_cases
         ]
         
         for test in tests:
