@@ -125,6 +125,7 @@ async def create_league(league_data: LeagueCreate):
             remaining=league_data.budget_per_team,
             roster_spots=league_data.position_requirements.copy()
         )
+        team = calculate_team_metrics(team, league_data.position_requirements, league_data.roster_size)
         teams.append(team)
     
     league = League(
