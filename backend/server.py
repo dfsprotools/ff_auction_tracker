@@ -35,7 +35,7 @@ class Player(BaseModel):
     nfl_team: str
     etr_rank: Optional[int] = None
     adp: Optional[float] = None
-    pos_rank: Optional[int] = None
+    pos_rank: Optional[str] = None  # Changed from int to str
 
 class DraftPick(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
