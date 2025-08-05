@@ -54,6 +54,10 @@ const AuctionTracker = () => {
   const [commissionerPassword, setCommissionerPassword] = useState('');
   const [showPasswordPrompt, setShowPasswordPrompt] = useState(false);
 
+  // Add these refs to your existing state declarations
+  const searchInputRef = useRef(null);
+  const bidInputRef = useRef(null);
+
   // Simple authentication - in production this would be more secure
   const COMMISSIONER_PASSWORD = 'draft2024';
 
