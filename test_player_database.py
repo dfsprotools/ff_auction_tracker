@@ -5,7 +5,7 @@ import sys
 
 def test_player_database():
     """Test the player database to see what's happening"""
-    base_url = "https://d299295e-a616-4a5a-a918-7496662d3af5.preview.emergentagent.com"
+    base_url = "https://f62c9dd1-ed84-4e7d-b3b1-56d81ffbd9ae.preview.emergentagent.com"
     api_url = f"{base_url}/api"
     
     print("🔍 Testing Player Database...")
