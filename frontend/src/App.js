@@ -1012,6 +1012,71 @@ const AuctionTracker = () => {
     </div>
   );
 
+  const TeamMemberControls = () => {
+    const currentTeam = getCurrentUserTeam();
+    
+    if (!currentTeam) {
+      return (
+        <div className="bg-white/10 backdrop-blur-md rounded-lg p-6 border border-white/20">
+          <div className="text-red-400">Error: Team not found</div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="space-y-4">
+        {/* Team Summary Card */}
+        <Card className="bg-white/10 backdrop-blur-md border-white/20">
+          <CardHeader>
+            <CardTitle className="text-white text-xl">{currentTeam.name}</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Budget Info */}
+            <div className="bg-slate-800/50 rounded-lg p-4 border-l-4 border-emerald-500">
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-slate-300 font-medium">MAX BID:</span>
+                <span className={`text-2xl ${getMaxBidColorClass(currentTeam.max_bid)}`}>
+                  ${currentTeam.max_bid}
+                </span>
+              </div>
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Budget Left:</span>
+                  <span className="text-emerald-400 font-medium">${currentTeam.remaining}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Spots Left:</span>
+                  <span className="text-white font-medium">{currentTeam.remaining_spots || 0}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Roster */}
+            <div>
+              <h3 className="text-white font-medium mb-2">My Roster ({currentTeam.roster.length}/{league.roster_size})</h3>
+              <div className="space-y-2 max-h-48 overflow-y-auto">
+                {currentTeam.roster.map(pick => (
+                  <div key={pick.id} className="flex items-center justify-between bg-slate-800/50 rounded p-2">
+                    <div>
+                      <div className="text-white text-sm font-medium">{pick.player.name}</div>
+                      <div className="text-xs text-slate-400">
+                        {pick.player.position} • {pick.player.nfl_team}
+                      </div>
+                    </div>
+                    <span className="text-emerald-400 font-medium">${pick.amount}</span>
+                  </div>
+                ))}
+                {currentTeam.roster.length === 0 && (
+                  <div className="text-slate-500 text-sm italic">No players drafted yet</div>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  };
+
   const TVDisplayInterface = () => (
     <div className="space-y-8">
       <div className="text-center">
