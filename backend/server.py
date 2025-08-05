@@ -371,29 +371,70 @@ async def update_team(league_id: str, team_id: str, team_data: dict):
 # Sample NFL players data
 @api_router.get("/players/search")
 async def search_players(q: str = "", position: str = "", limit: int = 50):
-    """Search players by name, position, or team"""
-    # This is sample data - in production this would be from the CSV
-    sample_players = [
-        {"name": "Josh Allen", "position": "QB", "nfl_team": "BUF", "etr_rank": 1, "adp": 12.5, "pos_rank": 1},
-        {"name": "Christian McCaffrey", "position": "RB", "nfl_team": "SF", "etr_rank": 2, "adp": 3.2, "pos_rank": 1},
-        {"name": "Tyreek Hill", "position": "WR", "nfl_team": "MIA", "etr_rank": 8, "adp": 15.7, "pos_rank": 1},
-        {"name": "Travis Kelce", "position": "TE", "nfl_team": "KC", "etr_rank": 15, "adp": 22.1, "pos_rank": 1},
-        {"name": "Justin Tucker", "position": "K", "nfl_team": "BAL", "etr_rank": 180, "adp": 165.3, "pos_rank": 1},
-        {"name": "San Francisco", "position": "DEF", "nfl_team": "SF", "etr_rank": 165, "adp": 155.2, "pos_rank": 1},
-        {"name": "Lamar Jackson", "position": "QB", "nfl_team": "BAL", "etr_rank": 3, "adp": 18.9, "pos_rank": 2},
-        {"name": "Saquon Barkley", "position": "RB", "nfl_team": "PHI", "etr_rank": 5, "adp": 8.1, "pos_rank": 2},
-        {"name": "CeeDee Lamb", "position": "WR", "nfl_team": "DAL", "etr_rank": 6, "adp": 11.3, "pos_rank": 2},
-        {"name": "Mark Andrews", "position": "TE", "nfl_team": "BAL", "etr_rank": 25, "adp": 35.6, "pos_rank": 2},
-    ]
-    
-    # Filter players based on search query
-    filtered_players = []
-    for player in sample_players:
-        if (not q or q.lower() in player["name"].lower() or q.lower() in player["nfl_team"].lower()) and \
-           (not position or player["position"] == position):
-            filtered_players.append(player)
-    
-    return filtered_players[:limit]
+    """Search players by name, position, or team - now using real CSV data"""
+    try:
+        # Load CSV data from the public URL
+        csv_url = "https://customer-assets.emergentagent.com/job_draft-wizard-2/artifacts/3gaj8jfg_ETR_New_Rankings_Redraft_PPR.csv"
+        response = requests.get(csv_url)
+        csv_data = StringIO(response.text)
+        
+        players = []
+        csv_reader = csv.DictReader(csv_data)
+        
+        for row in csv_reader:
+            # Clean and parse the data
+            player = {
+                "name": row["Name"].strip('"'),
+                "position": row["Position"].strip('"'),
+                "nfl_team": row["Team"].strip('"'),
+                "etr_rank": int(row["ETR Rank"]) if row["ETR Rank"].strip('"') else None,
+                "adp": float(row["ADP"]) if row["ADP"].strip('"') else None,
+                "pos_rank": row["Pos Rank ETR"].strip('"')
+            }
+            players.append(player)
+        
+        # Filter players based on search criteria
+        filtered_players = []
+        search_query = q.lower() if q else ""
+        
+        for player in players:
+            # Check name match
+            name_match = search_query in player["name"].lower() if search_query else True
+            # Check team match
+            team_match = search_query in player["nfl_team"].lower() if search_query else True
+            # Check position match
+            position_match = not position or player["position"] == position
+            
+            if (name_match or team_match) and position_match:
+                filtered_players.append(player)
+                
+            if len(filtered_players) >= limit:
+                break
+        
+        # Sort by ETR rank
+        filtered_players.sort(key=lambda x: x["etr_rank"] if x["etr_rank"] else 999)
+        
+        return filtered_players[:limit]
+        
+    except Exception as e:
+        # Fallback to sample data if CSV loading fails
+        sample_players = [
+            {"name": "Josh Allen", "position": "QB", "nfl_team": "BUF", "etr_rank": 40, "adp": 23.6, "pos_rank": "QB01"},
+            {"name": "Christian McCaffrey", "position": "RB", "nfl_team": "SF", "etr_rank": 7, "adp": 9.4, "pos_rank": "RB04"},
+            {"name": "Ja'Marr Chase", "position": "WR", "nfl_team": "CIN", "etr_rank": 1, "adp": 1.0, "pos_rank": "WR01"},
+            {"name": "Travis Kelce", "position": "TE", "nfl_team": "KC", "etr_rank": 79, "adp": 62.8, "pos_rank": "TE06"},
+            {"name": "Brandon Aubrey", "position": "K", "nfl_team": "DAL", "etr_rank": 151, "adp": 111.2, "pos_rank": "K01"},
+            {"name": "DEN DST", "position": "DST", "nfl_team": "DEN", "etr_rank": 150, "adp": 114.0, "pos_rank": "DST01"},
+        ]
+        
+        # Filter fallback data
+        filtered_players = []
+        for player in sample_players:
+            if (not q or q.lower() in player["name"].lower() or q.lower() in player["nfl_team"].lower()) and \
+               (not position or player["position"] == position):
+                filtered_players.append(player)
+        
+        return filtered_players[:limit]
 
 # Include the router in the main app
 app.include_router(api_router)
