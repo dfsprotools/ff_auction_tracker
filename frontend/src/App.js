@@ -741,19 +741,11 @@ const AuctionTracker = () => {
             <Label className="text-slate-300 text-base font-medium">Team Names</Label>
             <div className="mt-2 space-y-2 max-h-48 overflow-y-auto">
               {league && league.teams.map((team, index) => (
-                <div key={team.id} className="flex items-center space-x-2">
+                <div key={`team-${team.id}`} className="flex items-center space-x-2">
                   <span className="text-slate-400 text-sm w-16">Team {index + 1}:</span>
                   <Input
                     value={team.name}
-                    onChange={(e) => {
-                      const newName = e.target.value;
-                      setLeague(prevLeague => ({
-                        ...prevLeague,
-                        teams: prevLeague.teams.map(t => 
-                          t.id === team.id ? { ...t, name: newName } : t
-                        )
-                      }));
-                    }}
+                    onChange={(e) => updateTeamName(team.id, e.target.value)}
                     className="bg-slate-700 border-slate-600 text-white flex-1"
                     placeholder={`Team ${index + 1} name`}
                   />
