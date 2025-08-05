@@ -225,7 +225,7 @@ async def undo_pick(league_id: str, pick_id: str):
                 if roster_pick.id == pick_id:
                     team.roster.pop(j)
                     team.spent -= pick_to_remove.amount
-                    team = calculate_team_metrics(team, league.position_requirements)
+                    team = calculate_team_metrics(team, league.position_requirements, league.roster_size)
                     league.teams[team_index] = team
                     break
             break
