@@ -228,30 +228,34 @@ const AuctionTracker = () => {
     if (!query.trim()) return [];
 
     const searchQuery = query.toLowerCase();
+    
+    // First filter by name or team
     let filtered = availablePlayers.filter(player =>
       player.name.toLowerCase().includes(searchQuery) ||
       player.nfl_team.toLowerCase().includes(searchQuery)
     );
 
-    // For single letter searches, properly prioritize players whose FIRST NAME starts with that letter
+    // For single letter searches, STRICTLY prioritize players whose FIRST NAME starts with that letter
     if (query.length === 1) {
-      const priority = [];
-      const regular = [];
+      const firstNameMatches = [];
+      const otherMatches = [];
 
       filtered.forEach(player => {
         const firstName = player.name.split(' ')[0].toLowerCase();
-        // Check if first name starts with the typed letter
+        
+        // STRICT first name check - must START with the letter
         if (firstName.startsWith(searchQuery)) {
-          priority.push(player);
+          firstNameMatches.push(player);
         } else {
-          regular.push(player);
+          otherMatches.push(player);
         }
       });
 
-      filtered = [...priority, ...regular];
+      // Put first name matches first, then others
+      filtered = [...firstNameMatches, ...otherMatches];
     }
 
-    // Sort by ETR rank (better players first)
+    // Sort by ETR rank (lower number = better rank)
     filtered.sort((a, b) => (a.etr_rank || 999) - (b.etr_rank || 999));
 
     return filtered.slice(0, 10);
