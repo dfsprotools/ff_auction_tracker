@@ -1024,8 +1024,10 @@ const AuctionTracker = () => {
               placeholder="Search players..."
               value={searchQuery}
               onChange={(e) => {
-                setSearchQuery(e.target.value);
-                searchPlayers(e.target.value);
+                const value = e.target.value;
+                setSearchQuery(value);
+                const filteredResults = getFilteredDraftPlayers(value);
+                setSearchResults(filteredResults);
               }}
               className="bg-slate-700 border-slate-600 text-white pr-10"
             />
@@ -1045,6 +1047,9 @@ const AuctionTracker = () => {
                 >
                   <div className="text-white text-sm font-medium">
                     {player.name} ({player.position}, {player.nfl_team})
+                  </div>
+                  <div className="text-slate-400 text-xs">
+                    ETR #{player.etr_rank} • {player.pos_rank}
                   </div>
                 </div>
               ))}
@@ -1073,17 +1078,12 @@ const AuctionTracker = () => {
             type="number"
             placeholder="Winning bid amount"
             value={bidAmount}
-            onChange={(e) => {
-              e.preventDefault();
-              setBidAmount(e.target.value);
-            }}
-            onInput={(e) => setBidAmount(e.target.value)}
+            onChange={(e) => setBidAmount(e.target.value)}
             className="bg-slate-700 border-slate-600 text-white"
             min="1"
             step="1"
             inputMode="numeric"
             autoComplete="off"
-            data-testid="bid-amount-input"
           />
 
           {searchResults.length === 1 && selectedTeam && bidAmount && parseInt(bidAmount) > 0 && (
