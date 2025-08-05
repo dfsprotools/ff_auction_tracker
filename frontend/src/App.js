@@ -187,6 +187,7 @@ const AuctionTracker = () => {
       case 'RB': return 'border-sky-400 text-sky-300 bg-sky-500/10';
       case 'WR': return 'border-green-400 text-green-300 bg-green-500/10';
       case 'TE': return 'border-pink-400 text-pink-300 bg-pink-500/10';
+      case 'FLEX': return 'border-indigo-400 text-indigo-300 bg-indigo-500/10';
       case 'DST': return 'border-orange-400 text-orange-300 bg-orange-500/10';
       case 'K': return 'border-purple-400 text-purple-300 bg-purple-500/10';
       case 'BENCH': return 'border-slate-400 text-slate-300 bg-slate-500/10';
