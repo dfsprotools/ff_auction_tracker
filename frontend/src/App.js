@@ -1044,6 +1044,7 @@ const AuctionTracker = () => {
         <CardContent className="space-y-4">
           <div className="relative">
             <Input
+              ref={searchInputRef}
               placeholder="Search players..."
               value={searchQuery}
               onChange={(e) => handleSearchQueryChange(e.target.value)}
