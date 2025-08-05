@@ -665,7 +665,10 @@ const AuctionTracker = () => {
       );
     }
     
-    return filtered.slice(0, 100); // Limit for performance
+    // Sort by ETR rank (lower rank = better player)
+    filtered.sort((a, b) => (a.etr_rank || 999) - (b.etr_rank || 999));
+    
+    return filtered.slice(0, 200); // Show more players for better selection
   };
 
   // Calculate suggested value for a player
