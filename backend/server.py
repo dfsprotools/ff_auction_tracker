@@ -84,7 +84,7 @@ class PlayerCreate(BaseModel):
     nfl_team: str
     etr_rank: Optional[int] = None
     adp: Optional[float] = None
-    pos_rank: Optional[int] = None
+    pos_rank: Optional[str] = None  # Changed from int to str to match CSV data
 
 class DraftPickCreate(BaseModel):
     player: PlayerCreate
