@@ -445,6 +445,157 @@ class FantasyFootballAPITester:
             self.log_test("League Settings - Superflex", False, f"Error: {str(e)}")
             return False
 
+    def test_flex_position_default(self):
+        """Test that FLEX position is included in default league creation"""
+        if not self.league_id:
+            self.log_test("FLEX Position - Default", False, "No league ID available")
+            return False
+            
+        try:
+            # Get current league state
+            league_response = requests.get(f"{self.api_url}/leagues/{self.league_id}", timeout=10)
+            success = league_response.status_code == 200
+            
+            if success:
+                league_data = league_response.json()
+                pos_reqs = league_data['position_requirements']
+                
+                # Verify FLEX is present and set to 1 by default
+                flex_present = 'FLEX' in pos_reqs
+                flex_default_value = pos_reqs.get('FLEX', 0) == 1
+                
+                # Verify total calculation includes FLEX
+                expected_total = 1 + 2 + 2 + 1 + 1 + 1 + 1  # QB + RB + WR + TE + FLEX + K + DEF = 9
+                actual_total = sum(pos_reqs.values())
+                total_correct = actual_total == expected_total
+                
+                details = f"FLEX present: {flex_present}, FLEX value: {pos_reqs.get('FLEX', 'missing')}"
+                details += f", Total starters: {actual_total} (expected: {expected_total})"
+                details += f", Position requirements: {pos_reqs}"
+                
+                overall_success = success and flex_present and flex_default_value and total_correct
+                self.log_test("FLEX Position - Default", overall_success, details)
+                return overall_success
+            else:
+                self.log_test("FLEX Position - Default", False, f"Status: {league_response.status_code}")
+                return False
+                
+        except Exception as e:
+            self.log_test("FLEX Position - Default", False, f"Error: {str(e)}")
+            return False
+
+    def test_flex_position_double_flex(self):
+        """Test updating league settings for double FLEX league (FLEX=2)"""
+        if not self.league_id:
+            self.log_test("FLEX Position - Double FLEX", False, "No league ID available")
+            return False
+            
+        try:
+            # Update league settings for double FLEX
+            settings_data = {
+                "name": "Pipelayer Pro Bowl",
+                "total_teams": 14,
+                "budget_per_team": 300,
+                "roster_size": 16,
+                "position_requirements": {
+                    "QB": 1,
+                    "RB": 2,
+                    "WR": 2,
+                    "TE": 1,
+                    "FLEX": 2,  # Double FLEX
+                    "K": 1,
+                    "DEF": 1
+                }
+            }
+            
+            response = requests.put(f"{self.api_url}/leagues/{self.league_id}/settings", json=settings_data, timeout=10)
+            success = response.status_code == 200
+            
+            if success:
+                updated_league = response.json()
+                pos_reqs = updated_league['position_requirements']
+                
+                # Verify FLEX is set to 2
+                flex_correct = pos_reqs.get('FLEX', 0) == 2
+                
+                # Calculate total starters and bench (should be 10 starters, 6 bench)
+                total_starters = sum(pos_reqs.values())
+                bench_spots = updated_league['roster_size'] - total_starters
+                expected_starters = 10  # QB:1 + RB:2 + WR:2 + TE:1 + FLEX:2 + K:1 + DEF:1
+                expected_bench = 6
+                
+                totals_correct = total_starters == expected_starters and bench_spots == expected_bench
+                
+                details = f"Double FLEX league (FLEX=2). Starters: {total_starters} (exp: {expected_starters}), Bench: {bench_spots} (exp: {expected_bench})"
+                details += f", FLEX value: {pos_reqs.get('FLEX', 'missing')}"
+                
+                overall_success = success and flex_correct and totals_correct
+                self.log_test("FLEX Position - Double FLEX", overall_success, details)
+                return overall_success
+            else:
+                self.log_test("FLEX Position - Double FLEX", False, f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_test("FLEX Position - Double FLEX", False, f"Error: {str(e)}")
+            return False
+
+    def test_flex_position_no_flex(self):
+        """Test updating league settings for no FLEX league (FLEX=0)"""
+        if not self.league_id:
+            self.log_test("FLEX Position - No FLEX", False, "No league ID available")
+            return False
+            
+        try:
+            # Update league settings for no FLEX
+            settings_data = {
+                "name": "Pipelayer Pro Bowl",
+                "total_teams": 14,
+                "budget_per_team": 300,
+                "roster_size": 16,
+                "position_requirements": {
+                    "QB": 1,
+                    "RB": 2,
+                    "WR": 2,
+                    "TE": 1,
+                    "FLEX": 0,  # No FLEX
+                    "K": 1,
+                    "DEF": 1
+                }
+            }
+            
+            response = requests.put(f"{self.api_url}/leagues/{self.league_id}/settings", json=settings_data, timeout=10)
+            success = response.status_code == 200
+            
+            if success:
+                updated_league = response.json()
+                pos_reqs = updated_league['position_requirements']
+                
+                # Verify FLEX is set to 0
+                flex_correct = pos_reqs.get('FLEX', -1) == 0
+                
+                # Calculate total starters and bench (should be 8 starters, 8 bench)
+                total_starters = sum(pos_reqs.values())
+                bench_spots = updated_league['roster_size'] - total_starters
+                expected_starters = 8  # QB:1 + RB:2 + WR:2 + TE:1 + FLEX:0 + K:1 + DEF:1
+                expected_bench = 8
+                
+                totals_correct = total_starters == expected_starters and bench_spots == expected_bench
+                
+                details = f"No FLEX league (FLEX=0). Starters: {total_starters} (exp: {expected_starters}), Bench: {bench_spots} (exp: {expected_bench})"
+                details += f", FLEX value: {pos_reqs.get('FLEX', 'missing')}"
+                
+                overall_success = success and flex_correct and totals_correct
+                self.log_test("FLEX Position - No FLEX", overall_success, details)
+                return overall_success
+            else:
+                self.log_test("FLEX Position - No FLEX", False, f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_test("FLEX Position - No FLEX", False, f"Error: {str(e)}")
+            return False
+
     def test_league_settings_edge_cases(self):
         """Test edge cases for league settings"""
         if not self.league_id:
@@ -463,6 +614,7 @@ class FantasyFootballAPITester:
                     "RB": 0,
                     "WR": 1,  # Only WR required
                     "TE": 0,
+                    "FLEX": 0,  # Include FLEX in edge case test
                     "K": 0,
                     "DEF": 0
                 }
@@ -481,6 +633,7 @@ class FantasyFootballAPITester:
                     pos_reqs['RB'] == 0 and
                     pos_reqs['WR'] == 1 and
                     pos_reqs['TE'] == 0 and
+                    pos_reqs['FLEX'] == 0 and
                     pos_reqs['K'] == 0 and
                     pos_reqs['DEF'] == 0
                 )
