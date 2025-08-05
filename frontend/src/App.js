@@ -52,10 +52,39 @@ const AuctionTracker = () => {
   const [userTargets, setUserTargets] = useState([]);
   const [userValues, setUserValues] = useState({});
 
-  // Load demo league on component mount
+  // Load demo league and player database on component mount
   useEffect(() => {
     loadDemoLeague();
+    loadPlayerDatabase();
   }, []);
+
+  const loadPlayerDatabase = async () => {
+    try {
+      const response = await axios.get(`${API}/players/search`, {
+        params: { limit: 300 }
+      });
+      setPlayerDatabase(response.data);
+    } catch (error) {
+      console.error('Error loading player database:', error);
+    }
+  };
+
+  const selectUser = (role, teamId = null) => {
+    setUserRole(role);
+    setCurrentUser(role === 'commissioner' ? 'Commissioner' : teamId);
+    setShowUserSelection(false);
+    
+    // If team member, set their team as selected
+    if (role === 'team' && teamId) {
+      setSelectedTeam(teamId);
+    }
+  };
+
+  // Get current user's team data
+  const getCurrentUserTeam = () => {
+    if (!league || userRole !== 'team') return null;
+    return league.teams.find(team => team.id === currentUser);
+  };
 
   const loadDemoLeague = async () => {
     try {
