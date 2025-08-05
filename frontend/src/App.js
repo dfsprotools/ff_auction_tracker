@@ -7,9 +7,10 @@ import { Input } from './components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './components/ui/select';
 import { Badge } from './components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './components/ui/tabs';
-import { Search, DollarSign, Users, Trophy, Undo2, Plus } from 'lucide-react';
+import { Search, DollarSign, Users, Trophy, Undo2, Plus, Settings, Edit, Save, X } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from './components/ui/dialog';
 import { toast } from 'sonner';
+import { Label } from './components/ui/label';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
