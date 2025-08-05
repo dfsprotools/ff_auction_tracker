@@ -732,19 +732,16 @@ const AuctionTracker = () => {
                   <Input
                     value={team.name}
                     onChange={(e) => {
-                      e.preventDefault();
-                      const updatedTeams = [...league.teams];
-                      updatedTeams[index] = { ...team, name: e.target.value };
-                      setLeague({ ...league, teams: updatedTeams });
-                    }}
-                    onInput={(e) => {
-                      const updatedTeams = [...league.teams];
-                      updatedTeams[index] = { ...team, name: e.target.value };
-                      setLeague({ ...league, teams: updatedTeams });
+                      const newName = e.target.value;
+                      setLeague(prevLeague => ({
+                        ...prevLeague,
+                        teams: prevLeague.teams.map(t => 
+                          t.id === team.id ? { ...t, name: newName } : t
+                        )
+                      }));
                     }}
                     className="bg-slate-700 border-slate-600 text-white flex-1"
                     placeholder={`Team ${index + 1} name`}
-                    data-testid={`team-name-input-${index}`}
                   />
                 </div>
               ))}
