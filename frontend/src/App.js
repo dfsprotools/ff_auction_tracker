@@ -277,6 +277,52 @@ const AuctionTracker = () => {
     return positionsNeeded.slice(0, 8); // Limit display to 8 positions
   };
 
+  const UserSelectionScreen = () => (
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-4">
+      <Card className="bg-white/10 backdrop-blur-md border-white/20 w-full max-w-md">
+        <CardHeader>
+          <CardTitle className="text-white text-2xl text-center mb-2">
+            {league ? league.name : 'Fantasy Football Auction'}
+          </CardTitle>
+          <div className="text-slate-300 text-center">Select your role to continue</div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Commissioner Option */}
+          <Button
+            onClick={() => selectUser('commissioner')}
+            className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-6 text-lg"
+          >
+            <Settings className="h-5 w-5 mr-2" />
+            Commissioner
+            <div className="text-sm text-emerald-200 ml-2">(Full Admin Access)</div>
+          </Button>
+
+          {/* Team Selection */}
+          {league && (
+            <div className="space-y-2">
+              <div className="text-slate-300 text-sm font-medium text-center">
+                Or select your team:
+              </div>
+              <div className="grid grid-cols-2 gap-2 max-h-64 overflow-y-auto">
+                {league.teams.map(team => (
+                  <Button
+                    key={team.id}
+                    onClick={() => selectUser('team', team.id)}
+                    variant="outline"
+                    className="border-slate-600 text-slate-300 hover:bg-slate-700 hover:text-white p-3"
+                  >
+                    <Users className="h-4 w-4 mr-2" />
+                    {team.name}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+
   const LeagueSettingsDialog = () => (
     <Dialog open={showLeagueSettings} onOpenChange={setShowLeagueSettings}>
       <DialogContent className="bg-slate-800 border-slate-700 max-w-md">
