@@ -215,7 +215,7 @@ const AuctionTracker = () => {
     setTempTeamName('');
   };
 
-  const searchPlayers = async (query = '') => {
+  const searchPlayersForDraft = async (query = '') => {
     if (!query.trim()) {
       setSearchResults([]);
       return;
@@ -225,9 +225,9 @@ const AuctionTracker = () => {
       const response = await axios.get(`${API}/players/search`, {
         params: { q: query, limit: 10 }
       });
-      setSearchResults(response.data);
+      setSearchResults(response.data || []);
     } catch (error) {
-      console.error('Error searching players:', error);
+      console.error('Error searching players for draft:', error);
       setSearchResults([]);
     }
   };
