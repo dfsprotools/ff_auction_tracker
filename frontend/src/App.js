@@ -774,241 +774,141 @@ const AuctionTracker = () => {
   );
 
   const CommissionerControls = () => (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="bg-white/10 backdrop-blur-md rounded-lg p-6 border border-white/20">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-white mb-2">{league.name}</h1>
-            <div className="flex items-center space-x-6 text-slate-300">
-              <div className="flex items-center space-x-2">
-                <Users className="h-5 w-5" />
-                <span>{league.total_teams} Teams</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <DollarSign className="h-5 w-5" />
-                <span>${league.budget_per_team} Budget</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Trophy className="h-5 w-5" />
-                <span>{league.roster_size} Roster Spots</span>
+    <div className="space-y-4">
+      {/* League Header */}
+      <Card className="bg-white/10 backdrop-blur-md border-white/20">
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-white text-lg">{league.name}</CardTitle>
+              <div className="text-slate-300 text-sm">
+                {league.total_teams} Teams • ${league.budget_per_team} Budget
               </div>
             </div>
-          </div>
-          <div className="flex space-x-3">
             <Button 
               onClick={() => setShowLeagueSettings(true)}
               variant="outline"
               className="border-slate-600 text-slate-300 hover:bg-slate-700"
             >
               <Settings className="h-4 w-4 mr-2" />
-              League Settings
+              Settings
             </Button>
-            <Dialog open={showAddPick} onOpenChange={setShowAddPick}>
-              <DialogTrigger asChild>
-                <Button className="bg-emerald-600 hover:bg-emerald-700 text-white">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Draft Player
-                </Button>
-              </DialogTrigger>
-            <DialogContent className="bg-slate-800 border-slate-700">
-              <DialogHeader>
-                <DialogTitle className="text-white">Draft Player</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4">
-                <div className="relative">
-                  <Input
-                    placeholder="Search players..."
-                    value={searchQuery}
-                    onChange={(e) => {
-                      setSearchQuery(e.target.value);
-                      searchPlayers(e.target.value);
-                    }}
-                    className="bg-slate-700 border-slate-600 text-white pr-10"
-                  />
-                  <Search className="absolute right-3 top-3 h-4 w-4 text-slate-400" />
-                </div>
-                
-                {searchResults.length > 0 && (
-                  <div className="max-h-48 overflow-y-auto space-y-2">
-                    {searchResults.map((player, index) => (
-                      <div
-                        key={index}
-                        onClick={() => {
-                          setSearchQuery(player.name);
-                          setSearchResults([player]);
-                        }}
-                        className="p-3 bg-slate-700 rounded-lg cursor-pointer hover:bg-slate-600 transition-colors"
-                      >
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <div className="text-white font-medium">
-                              {player.name} ({player.position}, {player.nfl_team})
-                            </div>
-                            <div className="text-slate-400 text-sm">
-                              ETR Rank #{player.etr_rank} • {player.pos_rank} • ADP: {player.adp}
-                            </div>
-                          </div>
-                          <Badge variant="secondary" className="bg-slate-600">
-                            {player.position}
-                          </Badge>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                <Select value={selectedTeam} onValueChange={setSelectedTeam}>
-                  <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
-                    <SelectValue placeholder="Select team" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-slate-700 border-slate-600">
-                    {league.teams.map(team => (
-                      <SelectItem key={team.id} value={team.id} className="text-white">
-                        <div className="flex justify-between w-full">
-                          <span>{team.name}</span>
-                          <span className="ml-4 text-slate-400">
-                            ${team.remaining} left • Max: <span className={getMaxBidColorClass(team.max_bid).replace('font-bold', '')}>${team.max_bid}</span>
-                          </span>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                <Input
-                  type="number"
-                  placeholder="Bid amount"
-                  value={bidAmount}
-                  onChange={(e) => setBidAmount(e.target.value)}
-                  className="bg-slate-700 border-slate-600 text-white"
-                />
-
-                {searchResults.length === 1 && (
-                  <Button
-                    onClick={() => addDraftPick(searchResults[0])}
-                    className="w-full bg-emerald-600 hover:bg-emerald-700"
-                  >
-                    Draft {searchResults[0].name} for ${bidAmount}
-                  </Button>
-                )}
-              </div>
-            </DialogContent>
-          </Dialog>
           </div>
-        </div>
-      </div>
+        </CardHeader>
+      </Card>
 
-      {/* Teams Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        {league.teams.map(team => (
-          <Card key={team.id} className="bg-white/10 backdrop-blur-md border-white/20">
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                {editingTeam === team.id ? (
-                  <div className="flex items-center space-x-2 flex-1">
-                    <Input
-                      value={tempTeamName}
-                      onChange={(e) => setTempTeamName(e.target.value)}
-                      className="bg-slate-700 border-slate-600 text-white text-lg font-bold"
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') updateTeamName(team.id, tempTeamName);
-                        if (e.key === 'Escape') cancelEditingTeam();
-                      }}
-                      autoFocus
-                    />
-                    <Button
-                      size="sm"
-                      onClick={() => updateTeamName(team.id, tempTeamName)}
-                      className="bg-emerald-600 hover:bg-emerald-700 h-8 w-8 p-0"
-                    >
-                      <Save className="h-3 w-3" />
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={cancelEditingTeam}
-                      className="border-slate-600 text-slate-400 hover:bg-slate-700 h-8 w-8 p-0"
-                    >
-                      <X className="h-3 w-3" />
-                    </Button>
+      {/* Draft Entry Form */}
+      <Card className="bg-white/10 backdrop-blur-md border-white/20">
+        <CardHeader>
+          <CardTitle className="text-white text-lg">Draft Player</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="relative">
+            <Input
+              placeholder="Search players..."
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                searchPlayers(e.target.value);
+              }}
+              className="bg-slate-700 border-slate-600 text-white pr-10"
+            />
+            <Search className="absolute right-3 top-3 h-4 w-4 text-slate-400" />
+          </div>
+          
+          {searchResults.length > 0 && (
+            <div className="max-h-32 overflow-y-auto space-y-2">
+              {searchResults.slice(0, 5).map((player, index) => (
+                <div
+                  key={index}
+                  onClick={() => {
+                    setSearchQuery(player.name);
+                    setSearchResults([player]);
+                  }}
+                  className="p-2 bg-slate-700 rounded cursor-pointer hover:bg-slate-600 transition-colors"
+                >
+                  <div className="text-white text-sm font-medium">
+                    {player.name} ({player.position}, {player.nfl_team})
                   </div>
-                ) : (
-                  <div className="flex items-center space-x-2 flex-1">
-                    <CardTitle className="text-white text-lg">{team.name}</CardTitle>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <Select value={selectedTeam} onValueChange={setSelectedTeam}>
+            <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
+              <SelectValue placeholder="Select team" />
+            </SelectTrigger>
+            <SelectContent className="bg-slate-700 border-slate-600">
+              {league.teams.map(team => (
+                <SelectItem key={team.id} value={team.id} className="text-white">
+                  <div className="flex justify-between w-full">
+                    <span>{team.name}</span>
+                    <span className="ml-4 text-slate-400">
+                      Max: <span className={getMaxBidColorClass(team.max_bid).replace('font-bold', '')}>${team.max_bid}</span>
+                    </span>
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Input
+            type="number"
+            placeholder="Winning bid amount"
+            value={bidAmount}
+            onChange={(e) => setBidAmount(e.target.value)}
+            className="bg-slate-700 border-slate-600 text-white"
+          />
+
+          {searchResults.length === 1 && selectedTeam && bidAmount && (
+            <Button
+              onClick={() => addDraftPick(searchResults[0])}
+              className="w-full bg-emerald-600 hover:bg-emerald-700"
+            >
+              Draft {searchResults[0].name} for ${bidAmount}
+            </Button>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Recent Picks */}
+      <Card className="bg-white/10 backdrop-blur-md border-white/20">
+        <CardHeader>
+          <CardTitle className="text-white text-lg">Recent Picks</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-2 max-h-48 overflow-y-auto">
+            {league.all_picks.slice(-10).reverse().map(pick => {
+              const team = league.teams.find(t => t.id === pick.team_id);
+              return (
+                <div key={pick.id} className="flex items-center justify-between bg-slate-800/50 rounded p-2">
+                  <div>
+                    <div className="text-white text-sm font-medium">{pick.player.name}</div>
+                    <div className="text-xs text-slate-400">
+                      {team?.name} • {pick.player.position}
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <span className="text-emerald-400 font-medium">${pick.amount}</span>
                     <Button
                       size="sm"
                       variant="ghost"
-                      onClick={() => startEditingTeam(team)}
-                      className="text-slate-400 hover:text-white hover:bg-slate-700 h-6 w-6 p-0"
+                      onClick={() => undoPick(pick.id)}
+                      className="h-6 w-6 p-0 text-slate-400 hover:text-red-400"
                     >
-                      <Edit className="h-3 w-3" />
+                      <Undo2 className="h-3 w-3" />
                     </Button>
                   </div>
-                )}
-              </div>
-              <div className="space-y-2">
-                {/* Budget Summary */}
-                <div className="flex justify-between text-sm">
-                  <span className="text-slate-300">Spent: ${team.spent}</span>
-                  <span className="text-emerald-400 font-medium">Left: ${team.remaining}</span>
                 </div>
-                
-                {/* MAX BID - Most Important */}
-                <div className="bg-slate-800/50 rounded-lg p-2 border-l-4 border-emerald-500">
-                  <div className="flex justify-between items-center">
-                    <span className="text-slate-300 text-sm font-medium">MAX BID:</span>
-                    <span className={`text-lg ${getMaxBidColorClass(team.max_bid)}`}>
-                      ${team.max_bid}
-                    </span>
-                  </div>
-                </div>
-                
-                {/* Additional Metrics */}
-                <div className="grid grid-cols-2 gap-2 text-xs">
-                  <div className="text-slate-400">
-                    Spots Left: <span className="text-white font-medium">{team.remaining_spots || 0}</span>
-                  </div>
-                  <div className="text-slate-400">
-                    Avg/Spot: <span className="text-white font-medium">${team.avg_per_spot || 0}</span>
-                  </div>
-                  <div className="text-slate-400 col-span-2">
-                    Budget Used: <span className={getBudgetUtilizationColor(team.budget_utilization)}>{team.budget_utilization || 0}%</span>
-                  </div>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2 max-h-48 overflow-y-auto">
-                {team.roster.map(pick => (
-                  <div key={pick.id} className="flex items-center justify-between bg-slate-800/50 rounded p-2">
-                    <div>
-                      <div className="text-white text-sm font-medium">{pick.player.name}</div>
-                      <div className="text-xs text-slate-400">
-                        {pick.player.position} • {pick.player.nfl_team}
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <span className="text-emerald-400 font-medium">${pick.amount}</span>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => undoPick(pick.id)}
-                        className="h-6 w-6 p-0 text-slate-400 hover:text-red-400"
-                      >
-                        <Undo2 className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-                {team.roster.length === 0 && (
-                  <div className="text-slate-500 text-sm italic">No players drafted</div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+              );
+            })}
+            {league.all_picks.length === 0 && (
+              <div className="text-slate-500 text-sm italic">No picks yet</div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 
