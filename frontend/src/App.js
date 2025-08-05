@@ -51,6 +51,11 @@ const AuctionTracker = () => {
   const [playerDatabase, setPlayerDatabase] = useState([]);
   const [userTargets, setUserTargets] = useState([]);
   const [userValues, setUserValues] = useState({});
+  const [commissionerPassword, setCommissionerPassword] = useState('');
+  const [showPasswordPrompt, setShowPasswordPrompt] = useState(false);
+
+  // Simple authentication - in production this would be more secure
+  const COMMISSIONER_PASSWORD = 'draft2024';
 
   // Load demo league and player database on component mount
   useEffect(() => {
