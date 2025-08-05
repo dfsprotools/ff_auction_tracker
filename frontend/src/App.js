@@ -626,9 +626,6 @@ const AuctionTracker = () => {
           const teamRating = team.roster.length > 0 ? 
             (team.roster.reduce((sum, pick) => sum + (pick.player.etr_rank || 999), 0) / team.roster.length).toFixed(1) : 
             'N/A';
-          const topPlayer = team.roster.length > 0 ? 
-            team.roster.reduce((max, pick) => pick.amount > max.amount ? pick : max, team.roster[0]) : 
-            null;
           
           // Calculate positions needed
           const positionsNeeded = calculatePositionsNeeded(team, league.position_requirements);
@@ -675,13 +672,6 @@ const AuctionTracker = () => {
                     <span className="text-slate-400">Team Rating:</span>
                     <span className="text-white font-medium">{teamRating}</span>
                   </div>
-                  
-                  <div className="flex justify-between">
-                    <span className="text-slate-400">Top Player:</span>
-                    <span className="text-white font-medium">
-                      {topPlayer ? `${topPlayer.player.name} ($${topPlayer.amount})` : 'None yet'}
-                    </span>
-                  </div>
                 </div>
                 
                 {/* POSITIONS NEEDED */}
@@ -692,11 +682,7 @@ const AuctionTracker = () => {
                       <Badge 
                         key={index} 
                         variant="outline" 
-                        className={`text-sm ${
-                          pos.type === 'starter' ? 'border-red-500 text-red-400' :
-                          pos.type === 'bench' ? 'border-yellow-500 text-yellow-400' :
-                          'border-green-500 text-green-400'
-                        }`}
+                        className={`text-sm font-medium ${getPositionColorClass(pos.position)}`}
                       >
                         {pos.position}
                       </Badge>
