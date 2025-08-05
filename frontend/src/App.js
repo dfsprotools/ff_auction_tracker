@@ -223,27 +223,26 @@ const AuctionTracker = () => {
 
   // Filter players for draft based on search query
   const getFilteredDraftPlayers = useCallback((query) => {
+    console.log("DEBUG: Search query:", query);
     const availablePlayers = getAvailablePlayersForDraft();
+    console.log("DEBUG: Total available players:", availablePlayers.length);
 
     if (!query.trim()) return [];
 
     const searchQuery = query.toLowerCase();
+    console.log("DEBUG: Lowercase query:", searchQuery);
     
-    // First filter by name or team
-    let filtered = availablePlayers.filter(player =>
-      player.name.toLowerCase().includes(searchQuery) ||
-      player.nfl_team.toLowerCase().includes(searchQuery)
-    );
-
-    // For single letter searches, STRICTLY prioritize players whose FIRST NAME starts with that letter
+    // For debugging - let's see what we're filtering
     if (query.length === 1) {
+      console.log("DEBUG: Single letter search detected");
+      
       const firstNameMatches = [];
       const otherMatches = [];
 
-      filtered.forEach(player => {
+      availablePlayers.forEach(player => {
         const firstName = player.name.split(' ')[0].toLowerCase();
+        console.log(`DEBUG: Player ${player.name}, first name: "${firstName}", starts with "${searchQuery}"?`, firstName.startsWith(searchQuery));
         
-        // STRICT first name check - must START with the letter
         if (firstName.startsWith(searchQuery)) {
           firstNameMatches.push(player);
         } else {
@@ -251,13 +250,24 @@ const AuctionTracker = () => {
         }
       });
 
-      // Put first name matches first, then others
-      filtered = [...firstNameMatches, ...otherMatches];
+      console.log("DEBUG: First name matches:", firstNameMatches.map(p => p.name));
+      console.log("DEBUG: Other matches:", otherMatches.map(p => p.name));
+      
+      const filtered = [...firstNameMatches, ...otherMatches];
+      filtered.sort((a, b) => (a.etr_rank || 999) - (b.etr_rank || 999));
+      
+      const result = filtered.slice(0, 10);
+      console.log("DEBUG: Final results:", result.map(p => p.name));
+      return result;
     }
-
-    // Sort by ETR rank (lower number = better rank)
+    
+    // For multi-character searches
+    let filtered = availablePlayers.filter(player => {
+      const firstName = player.name.split(' ')[0].toLowerCase();
+      return firstName.startsWith(searchQuery);
+    });
+    
     filtered.sort((a, b) => (a.etr_rank || 999) - (b.etr_rank || 999));
-
     return filtered.slice(0, 10);
   }, [getAvailablePlayersForDraft]);
 
