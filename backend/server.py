@@ -422,33 +422,30 @@ async def search_players(q: str = "", position: str = "", limit: int = 500):
         filtered_players = []
         search_query = q.lower() if q else ""
         
-        # For single letter searches, prioritize players whose names START with that letter
+        # For single letter searches, prioritize players whose FIRST NAME starts with that letter
         if len(search_query) == 1:
-            # First, get players whose FIRST NAME starts with the letter
-            priority_first_name = []
-            priority_last_name = []
+            first_name_matches = []
             other_matches = []
             
             for player in players:
-                name_lower = player["name"].lower()
                 position_match = not position or player["position"] == position
-                
                 if not position_match:
                     continue
                     
+                name_parts = player["name"].lower().split()
+                first_name = name_parts[0] if name_parts else ""
+                
                 # Check if first name starts with search letter
-                first_name = name_lower.split()[0] if ' ' in name_lower else name_lower
                 if first_name.startswith(search_query):
-                    # Boost mega-popular players like Josh Allen
-                    if player["name"] in ["Josh Allen", "Justin Jefferson", "Ja'Marr Chase", "Jahmyr Gibbs"]:
-                        priority_first_name.append(player)
-                    else:
-                        priority_last_name.append(player)
-                elif search_query in name_lower or search_query in player["nfl_team"].lower():
+                    first_name_matches.append(player)
+                elif search_query in player["name"].lower() or search_query in player["nfl_team"].lower():
                     other_matches.append(player)
             
-            # Combine in priority order
-            filtered_players = priority_first_name + priority_last_name + other_matches
+            # Sort first name matches by ETR rank, then add other matches
+            first_name_matches.sort(key=lambda x: x["etr_rank"] if x["etr_rank"] != 999 else 999)
+            other_matches.sort(key=lambda x: x["etr_rank"] if x["etr_rank"] != 999 else 999)
+            
+            filtered_players = first_name_matches + other_matches
         else:
             # For multi-character searches, use normal logic
             for player in players:
@@ -461,9 +458,9 @@ async def search_players(q: str = "", position: str = "", limit: int = 500):
                     
                 if len(filtered_players) >= limit:
                     break
-        
-        # Sort by ETR rank within groups
-        filtered_players.sort(key=lambda x: x["etr_rank"] if x["etr_rank"] != 999 else 999)
+            
+            # Sort by ETR rank
+            filtered_players.sort(key=lambda x: x["etr_rank"] if x["etr_rank"] != 999 else 999)
         
         return filtered_players[:limit]
         
