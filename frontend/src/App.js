@@ -507,9 +507,12 @@ const AuctionTracker = () => {
 
   const LeagueSettingsDialog = () => (
     <Dialog open={showLeagueSettings} onOpenChange={setShowLeagueSettings}>
-      <DialogContent className="bg-slate-800 border-slate-700 max-w-md">
+      <DialogContent className="bg-slate-800 border-slate-700 max-w-md" aria-describedby="league-settings-description">
         <DialogHeader>
           <DialogTitle className="text-white">League Settings</DialogTitle>
+          <div id="league-settings-description" className="sr-only">
+            Configure your fantasy football league settings including team count, budget, roster size, and position requirements
+          </div>
         </DialogHeader>
         <div className="space-y-4">
           <div>
