@@ -31,7 +31,15 @@ const AuctionTracker = () => {
     name: '',
     total_teams: 12,
     budget_per_team: 300,
-    roster_size: 16
+    roster_size: 16,
+    position_requirements: {
+      QB: 1,
+      RB: 2, 
+      WR: 2,
+      TE: 1,
+      K: 1,
+      DEF: 1
+    }
   });
 
   // Load demo league on component mount
