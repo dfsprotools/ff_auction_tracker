@@ -635,8 +635,10 @@ const AuctionTracker = () => {
 
   // Player status helper
   const getPlayerStatus = (player) => {
-    const drafted = league.all_picks.find(pick => 
-      pick.player.name === player.name && pick.player.position === player.position
+    const drafted = league?.all_picks?.find(pick => 
+      pick.player.name === player.name && 
+      pick.player.position === player.position &&
+      pick.player.nfl_team === player.nfl_team
     );
     
     if (drafted) {
