@@ -60,12 +60,16 @@ const AuctionTracker = () => {
 
   const loadPlayerDatabase = async () => {
     try {
+      // Load ALL players from CSV (increase limit significantly)
       const response = await axios.get(`${API}/players/search`, {
-        params: { limit: 300 }
+        params: { limit: 500, q: '' } // Empty query to get all players
       });
-      setPlayerDatabase(response.data);
+      console.log('Loaded players:', response.data?.length || 0);
+      setPlayerDatabase(response.data || []);
     } catch (error) {
       console.error('Error loading player database:', error);
+      // Set empty array as fallback
+      setPlayerDatabase([]);
     }
   };
 
