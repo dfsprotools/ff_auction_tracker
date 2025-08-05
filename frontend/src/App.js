@@ -952,14 +952,14 @@ const AuctionTracker = () => {
             <Search className="absolute right-3 top-3 h-4 w-4 text-slate-400" />
           </div>
           
-          {searchResults.length > 0 && (
+          {searchResults.length > 0 && searchQuery && (
             <div className="max-h-32 overflow-y-auto space-y-2">
               {searchResults.slice(0, 5).map((player, index) => (
                 <div
                   key={index}
                   onClick={() => {
                     setSearchQuery(player.name);
-                    setSearchResults([player]); // Keep the selected player in results
+                    setSearchResults([player]); // Set exactly one player for draft button
                   }}
                   className="p-2 bg-slate-700 rounded cursor-pointer hover:bg-slate-600 transition-colors"
                 >
@@ -1001,7 +1001,7 @@ const AuctionTracker = () => {
             autoComplete="off"
           />
 
-          {searchResults.length === 1 && selectedTeam && bidAmount && (
+          {searchResults.length === 1 && selectedTeam && bidAmount && parseInt(bidAmount) > 0 && (
             <Button
               onClick={() => addDraftPick(searchResults[0])}
               className="w-full bg-emerald-600 hover:bg-emerald-700"
