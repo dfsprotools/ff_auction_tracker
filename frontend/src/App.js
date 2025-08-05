@@ -866,6 +866,8 @@ const AuctionTracker = () => {
             value={bidAmount}
             onChange={(e) => setBidAmount(e.target.value)}
             className="bg-slate-700 border-slate-600 text-white"
+            min="1"
+            step="1"
           />
 
           {searchResults.length === 1 && selectedTeam && bidAmount && (
