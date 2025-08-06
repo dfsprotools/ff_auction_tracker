@@ -706,287 +706,429 @@ const AuctionTracker = () => {
     </Dialog>
   );
 
-  const LeagueSettingsDialog = React.memo(() => (
-    <Dialog open={showLeagueSettings} onOpenChange={setShowLeagueSettings}>
-      <DialogContent className="bg-slate-800 border-slate-700 max-w-md" aria-describedby="league-settings-description">
-        <DialogHeader>
-          <DialogTitle className="text-white">League Settings</DialogTitle>
-          <div id="league-settings-description" className="sr-only">
-            Configure your fantasy football league settings including team count, budget, roster size, and position requirements
-          </div>
-        </DialogHeader>
-        <div className="space-y-4">
-          <div>
-            <Label htmlFor="league-name" className="text-slate-300">League Name</Label>
-            <Input
-              id="league-name"
-              value={leagueSettings.name}
-              onChange={(e) => setLeagueSettings({...leagueSettings, name: e.target.value})}
-              className="bg-slate-700 border-slate-600 text-white"
-            />
-          </div>
-          
-          <div>
-            <Label htmlFor="total-teams" className="text-slate-300">Number of Teams</Label>
-            <Select 
-              value={leagueSettings.total_teams.toString()} 
-              onValueChange={(value) => setLeagueSettings({...leagueSettings, total_teams: parseInt(value)})}
-            >
-              <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="bg-slate-700 border-slate-600">
-                {[8, 10, 12, 14, 16, 18, 20].map(num => (
-                  <SelectItem key={num} value={num.toString()} className="text-white">
-                    {num} Teams
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+  // Isolated League Settings Dialog with internal state management
+  const LeagueSettingsDialog = React.memo(() => {
+    // Internal state for the dialog - prevents re-rendering
+    const [localLeagueSettings, setLocalLeagueSettings] = useState(leagueSettings);
+    const [localTeams, setLocalTeams] = useState(league?.teams || []);
+    const [localPhoneNumbers, setLocalPhoneNumbers] = useState(teamPhoneNumbers);
+    const localTeamNameRefs = useRef({});
+    const localTeamPhoneRefs = useRef({});
+    
+    // Update local state when dialog opens
+    React.useEffect(() => {
+      if (showLeagueSettings && league) {
+        setLocalLeagueSettings(leagueSettings);
+        setLocalTeams([...league.teams]);
+        setLocalPhoneNumbers({...teamPhoneNumbers});
+      }
+    }, [showLeagueSettings, league, leagueSettings, teamPhoneNumbers]);
 
-          <div>
-            <Label htmlFor="budget" className="text-slate-300">Budget Per Team</Label>
-            <Select 
-              value={leagueSettings.budget_per_team.toString()} 
-              onValueChange={(value) => setLeagueSettings({...leagueSettings, budget_per_team: parseInt(value)})}
-            >
-              <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="bg-slate-700 border-slate-600">
-                {[100, 150, 200, 250, 300, 400, 500].map(amount => (
-                  <SelectItem key={amount} value={amount.toString()} className="text-white">
-                    ${amount}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+    // Local handlers that don't trigger parent re-renders
+    const handleLocalTeamNameChange = useCallback((teamId, newName) => {
+      setLocalTeams(prevTeams => 
+        prevTeams.map(team => 
+          team.id === teamId ? { ...team, name: newName } : team
+        )
+      );
+      
+      // Maintain focus
+      setTimeout(() => {
+        const inputRef = localTeamNameRefs.current[teamId];
+        if (inputRef && document.activeElement !== inputRef) {
+          inputRef.focus();
+        }
+      }, 0);
+    }, []);
 
-          <div>
-            <Label htmlFor="roster-size" className="text-slate-300">Roster Spots</Label>
-            <Select 
-              value={leagueSettings.roster_size.toString()} 
-              onValueChange={(value) => setLeagueSettings({...leagueSettings, roster_size: parseInt(value)})}
-            >
-              <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="bg-slate-700 border-slate-600">
-                {[10, 12, 14, 15, 16, 18, 20, 22, 25].map(num => (
-                  <SelectItem key={num} value={num.toString()} className="text-white">
-                    {num} Spots
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+    const handleLocalPhoneNumberChange = useCallback((teamId, phoneNumber) => {
+      setLocalPhoneNumbers(prev => ({
+        ...prev,
+        [teamId]: phoneNumber
+      }));
+      
+      // Maintain focus
+      setTimeout(() => {
+        const inputRef = localTeamPhoneRefs.current[teamId];
+        if (inputRef && document.activeElement !== inputRef) {
+          inputRef.focus();
+        }
+      }, 0);
+    }, []);
 
-          <div>
-            <Label className="text-slate-300 text-base font-medium">Starting Lineup Requirements</Label>
-            <div className="grid grid-cols-2 gap-3 mt-2">
-              <div className="flex items-center justify-between bg-slate-700 rounded p-2">
-                <span className="text-slate-300">QB:</span>
-                <Select 
-                  value={leagueSettings.position_requirements.QB.toString()} 
-                  onValueChange={(value) => updatePositionRequirement('QB', value)}
-                >
-                  <SelectTrigger className="w-16 h-8 bg-slate-600 border-slate-500 text-white">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="bg-slate-700 border-slate-600">
-                    {[0, 1, 2, 3].map(num => (
-                      <SelectItem key={num} value={num.toString()} className="text-white">
-                        {num}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div className="flex items-center justify-between bg-slate-700 rounded p-2">
-                <span className="text-slate-300">RB:</span>
-                <Select 
-                  value={leagueSettings.position_requirements.RB.toString()} 
-                  onValueChange={(value) => updatePositionRequirement('RB', value)}
-                >
-                  <SelectTrigger className="w-16 h-8 bg-slate-600 border-slate-500 text-white">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="bg-slate-700 border-slate-600">
-                    {[0, 1, 2, 3, 4].map(num => (
-                      <SelectItem key={num} value={num.toString()} className="text-white">
-                        {num}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div className="flex items-center justify-between bg-slate-700 rounded p-2">
-                <span className="text-slate-300">WR:</span>
-                <Select 
-                  value={leagueSettings.position_requirements.WR.toString()} 
-                  onValueChange={(value) => updatePositionRequirement('WR', value)}
-                >
-                  <SelectTrigger className="w-16 h-8 bg-slate-600 border-slate-500 text-white">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="bg-slate-700 border-slate-600">
-                    {[0, 1, 2, 3, 4, 5, 6].map(num => (
-                      <SelectItem key={num} value={num.toString()} className="text-white">
-                        {num}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div className="flex items-center justify-between bg-slate-700 rounded p-2">
-                <span className="text-slate-300">TE:</span>
-                <Select 
-                  value={leagueSettings.position_requirements.TE.toString()} 
-                  onValueChange={(value) => updatePositionRequirement('TE', value)}
-                >
-                  <SelectTrigger className="w-16 h-8 bg-slate-600 border-slate-500 text-white">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="bg-slate-700 border-slate-600">
-                    {[0, 1, 2, 3].map(num => (
-                      <SelectItem key={num} value={num.toString()} className="text-white">
-                        {num}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div className="flex items-center justify-between bg-slate-700 rounded p-2">
-                <span className="text-slate-300">FLEX:</span>
-                <Select 
-                  value={leagueSettings.position_requirements.FLEX.toString()} 
-                  onValueChange={(value) => updatePositionRequirement('FLEX', value)}
-                >
-                  <SelectTrigger className="w-16 h-8 bg-slate-600 border-slate-500 text-white">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="bg-slate-700 border-slate-600">
-                    {[0, 1, 2, 3].map(num => (
-                      <SelectItem key={num} value={num.toString()} className="text-white">
-                        {num}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div className="flex items-center justify-between bg-slate-700 rounded p-2">
-                <span className="text-slate-300">K:</span>
-                <Select 
-                  value={leagueSettings.position_requirements.K.toString()} 
-                  onValueChange={(value) => updatePositionRequirement('K', value)}
-                >
-                  <SelectTrigger className="w-16 h-8 bg-slate-600 border-slate-500 text-white">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="bg-slate-700 border-slate-600">
-                    {[0, 1, 2].map(num => (
-                      <SelectItem key={num} value={num.toString()} className="text-white">
-                        {num}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div className="flex items-center justify-between bg-slate-700 rounded p-2">
-                <span className="text-slate-300">DEF:</span>
-                <Select 
-                  value={leagueSettings.position_requirements.DEF.toString()} 
-                  onValueChange={(value) => updatePositionRequirement('DEF', value)}
-                >
-                  <SelectTrigger className="w-16 h-8 bg-slate-600 border-slate-500 text-white">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="bg-slate-700 border-slate-600">
-                    {[0, 1, 2].map(num => (
-                      <SelectItem key={num} value={num.toString()} className="text-white">
-                        {num}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <div className="mt-2 text-slate-400 text-sm">
-              FLEX can be RB/WR/TE • Total: {
-                Object.values(leagueSettings.position_requirements).reduce((sum, val) => sum + val, 0)
-              } starters, {leagueSettings.roster_size - Object.values(leagueSettings.position_requirements).reduce((sum, val) => sum + val, 0)} bench
-            </div>
-          </div>
+    const handleLocalPositionRequirementChange = useCallback((position, value) => {
+      setLocalLeagueSettings(prev => ({
+        ...prev,
+        position_requirements: {
+          ...prev.position_requirements,
+          [position]: parseInt(value)
+        }
+      }));
+    }, []);
 
-          {/* TEAM NAME MANAGEMENT - ENHANCED WITH SMS SYSTEM */}
-          <div>
-            <Label className="text-slate-300 text-base font-medium">Team Names & Phone Numbers</Label>
-            <div className="mt-2 space-y-3 max-h-48 overflow-y-auto">
-              {league && league.teams.map((team, index) => (
-                <TeamNameInput 
-                  key={team.id}
-                  team={team} 
-                  index={index} 
-                  updateTeamName={updateTeamName}
-                  updateTeamPhoneNumber={updateTeamPhoneNumber}
-                  teamNameRefs={teamNameRefs}
-                  teamPhoneRefs={teamPhoneRefs}
-                  teamPhoneNumbers={teamPhoneNumbers}
-                />
-              ))}
-            </div>
-          </div>
+    // Save all changes to parent state
+    const handleSaveSettings = async () => {
+      try {
+        // Update parent states
+        setLeagueSettings(localLeagueSettings);
+        setTeamPhoneNumbers(localPhoneNumbers);
+        
+        // Update league teams
+        setLeague(prevLeague => ({
+          ...prevLeague,
+          teams: localTeams
+        }));
 
-          {/* GENERATE INVITES SECTION */}
-          <div>
-            <Label className="text-slate-300 text-base font-medium">SMS Invitations</Label>
-            <div className="mt-2">
-              <Button 
-                onClick={() => {
-                  const messages = generateInviteMessages();
-                  // Show the messages in a dialog for copy/paste
-                  setShowInviteMessages(messages);
-                }}
-                className="w-full bg-blue-600 hover:bg-blue-700"
-                disabled={!league || league.teams.some(team => !team.name.trim() || team.name.startsWith('Team '))}
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Generate SMS Invites
-              </Button>
-              <div className="text-xs text-slate-400 mt-1">
-                All teams must be named before generating invites
-              </div>
-            </div>
-          </div>
+        // Call the original update function
+        const response = await axios.put(`${API}/leagues/${league.id}/settings`, localLeagueSettings);
+        
+        // Update team names on server
+        for (let i = 0; i < localTeams.length; i++) {
+          const team = localTeams[i];
+          if (team.name !== `Team ${i + 1}`) {
+            await axios.put(`${API}/leagues/${league.id}/teams/${team.id}`, {
+              name: team.name
+            });
+          }
+        }
+        
+        // Force reload league data
+        const finalResponse = await axios.get(`${API}/leagues/${league.id}`);
+        const freshLeague = finalResponse.data;
+        setLeague(freshLeague);
+        
+        // Mark that commissioner has named teams
+        setCommissionerTeamsNamed(true);
+        
+        setShowLeagueSettings(false);
+        toast.success('League settings updated! Team users can now join the league.');
+      } catch (error) {
+        console.error('Error updating league settings:', error);
+        toast.error('Failed to update league settings');
+      }
+    };
 
-          <div className="flex space-x-2 pt-4">
-            <Button 
-              onClick={updateLeagueSettings}
-              className="flex-1 bg-emerald-600 hover:bg-emerald-700"
-            >
-              <Save className="h-4 w-4 mr-2" />
-              Save Settings
-            </Button>
-            <Button 
-              variant="outline" 
-              onClick={() => setShowLeagueSettings(false)}
-              className="border-slate-600 text-slate-300 hover:bg-slate-700"
-            >
-              Cancel
-            </Button>
-          </div>
+    // Local TeamNameInput component to prevent external dependencies
+    const LocalTeamNameInput = React.memo(({ team, index }) => (
+      <div className="space-y-2">
+        <div className="flex items-center space-x-2">
+          <span className="text-slate-400 text-sm w-16">Team {index + 1}:</span>
+          <Input
+            ref={(el) => {
+              if (el) localTeamNameRefs.current[team.id] = el;
+            }}
+            value={team.name}
+            onChange={(e) => handleLocalTeamNameChange(team.id, e.target.value)}
+            className="bg-slate-700 border-slate-600 text-white flex-1"
+            placeholder={`Team ${index + 1} name`}
+          />
         </div>
-      </DialogContent>
-    </Dialog>
-  ));
+        <div className="flex items-center space-x-2">
+          <span className="text-slate-400 text-sm w-16">Phone:</span>
+          <Input
+            ref={(el) => {
+              if (el) localTeamPhoneRefs.current[team.id] = el;
+            }}
+            value={localPhoneNumbers[team.id] || ''}
+            onChange={(e) => handleLocalPhoneNumberChange(team.id, e.target.value)}
+            className="bg-slate-700 border-slate-600 text-white flex-1"
+            placeholder="(555) 123-4567"
+            type="tel"
+          />
+        </div>
+      </div>
+    ));
+
+    return (
+      <Dialog open={showLeagueSettings} onOpenChange={setShowLeagueSettings}>
+        <DialogContent className="bg-slate-800 border-slate-700 max-w-md" aria-describedby="league-settings-description">
+          <DialogHeader>
+            <DialogTitle className="text-white">League Settings</DialogTitle>
+            <div id="league-settings-description" className="sr-only">
+              Configure your fantasy football league settings including team count, budget, roster size, and position requirements
+            </div>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="league-name" className="text-slate-300">League Name</Label>
+              <Input
+                id="league-name"
+                value={localLeagueSettings.name}
+                onChange={(e) => setLocalLeagueSettings({...localLeagueSettings, name: e.target.value})}
+                className="bg-slate-700 border-slate-600 text-white"
+              />
+            </div>
+            
+            <div>
+              <Label htmlFor="total-teams" className="text-slate-300">Number of Teams</Label>
+              <Select 
+                value={localLeagueSettings.total_teams.toString()} 
+                onValueChange={(value) => setLocalLeagueSettings({...localLeagueSettings, total_teams: parseInt(value)})}
+              >
+                <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-slate-700 border-slate-600">
+                  {[8, 10, 12, 14, 16, 18, 20].map(num => (
+                    <SelectItem key={num} value={num.toString()} className="text-white">
+                      {num} Teams
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label htmlFor="budget" className="text-slate-300">Budget Per Team</Label>
+              <Select 
+                value={localLeagueSettings.budget_per_team.toString()} 
+                onValueChange={(value) => setLocalLeagueSettings({...localLeagueSettings, budget_per_team: parseInt(value)})}
+              >
+                <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-slate-700 border-slate-600">
+                  {[100, 150, 200, 250, 300, 400, 500].map(amount => (
+                    <SelectItem key={amount} value={amount.toString()} className="text-white">
+                      ${amount}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label htmlFor="roster-size" className="text-slate-300">Roster Spots</Label>
+              <Select 
+                value={localLeagueSettings.roster_size.toString()} 
+                onValueChange={(value) => setLocalLeagueSettings({...localLeagueSettings, roster_size: parseInt(value)})}
+              >
+                <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-slate-700 border-slate-600">
+                  {[10, 12, 14, 15, 16, 18, 20, 22, 25].map(num => (
+                    <SelectItem key={num} value={num.toString()} className="text-white">
+                      {num} Spots
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label className="text-slate-300 text-base font-medium">Starting Lineup Requirements</Label>
+              <div className="grid grid-cols-2 gap-3 mt-2">
+                <div className="flex items-center justify-between bg-slate-700 rounded p-2">
+                  <span className="text-slate-300">QB:</span>
+                  <Select 
+                    value={localLeagueSettings.position_requirements.QB.toString()} 
+                    onValueChange={(value) => handleLocalPositionRequirementChange('QB', value)}
+                  >
+                    <SelectTrigger className="w-16 h-8 bg-slate-600 border-slate-500 text-white">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-slate-700 border-slate-600">
+                      {[0, 1, 2, 3].map(num => (
+                        <SelectItem key={num} value={num.toString()} className="text-white">
+                          {num}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="flex items-center justify-between bg-slate-700 rounded p-2">
+                  <span className="text-slate-300">RB:</span>
+                  <Select 
+                    value={localLeagueSettings.position_requirements.RB.toString()} 
+                    onValueChange={(value) => handleLocalPositionRequirementChange('RB', value)}
+                  >
+                    <SelectTrigger className="w-16 h-8 bg-slate-600 border-slate-500 text-white">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-slate-700 border-slate-600">
+                      {[0, 1, 2, 3, 4].map(num => (
+                        <SelectItem key={num} value={num.toString()} className="text-white">
+                          {num}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="flex items-center justify-between bg-slate-700 rounded p-2">
+                  <span className="text-slate-300">WR:</span>
+                  <Select 
+                    value={localLeagueSettings.position_requirements.WR.toString()} 
+                    onValueChange={(value) => handleLocalPositionRequirementChange('WR', value)}
+                  >
+                    <SelectTrigger className="w-16 h-8 bg-slate-600 border-slate-500 text-white">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-slate-700 border-slate-600">
+                      {[0, 1, 2, 3, 4, 5, 6].map(num => (
+                        <SelectItem key={num} value={num.toString()} className="text-white">
+                          {num}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="flex items-center justify-between bg-slate-700 rounded p-2">
+                  <span className="text-slate-300">TE:</span>
+                  <Select 
+                    value={localLeagueSettings.position_requirements.TE.toString()} 
+                    onValueChange={(value) => handleLocalPositionRequirementChange('TE', value)}
+                  >
+                    <SelectTrigger className="w-16 h-8 bg-slate-600 border-slate-500 text-white">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-slate-700 border-slate-600">
+                      {[0, 1, 2, 3].map(num => (
+                        <SelectItem key={num} value={num.toString()} className="text-white">
+                          {num}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="flex items-center justify-between bg-slate-700 rounded p-2">
+                  <span className="text-slate-300">FLEX:</span>
+                  <Select 
+                    value={localLeagueSettings.position_requirements.FLEX.toString()} 
+                    onValueChange={(value) => handleLocalPositionRequirementChange('FLEX', value)}
+                  >
+                    <SelectTrigger className="w-16 h-8 bg-slate-600 border-slate-500 text-white">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-slate-700 border-slate-600">
+                      {[0, 1, 2, 3].map(num => (
+                        <SelectItem key={num} value={num.toString()} className="text-white">
+                          {num}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="flex items-center justify-between bg-slate-700 rounded p-2">
+                  <span className="text-slate-300">K:</span>
+                  <Select 
+                    value={localLeagueSettings.position_requirements.K.toString()} 
+                    onValueChange={(value) => handleLocalPositionRequirementChange('K', value)}
+                  >
+                    <SelectTrigger className="w-16 h-8 bg-slate-600 border-slate-500 text-white">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-slate-700 border-slate-600">
+                      {[0, 1, 2].map(num => (
+                        <SelectItem key={num} value={num.toString()} className="text-white">
+                          {num}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="flex items-center justify-between bg-slate-700 rounded p-2">
+                  <span className="text-slate-300">DEF:</span>
+                  <Select 
+                    value={localLeagueSettings.position_requirements.DEF.toString()} 
+                    onValueChange={(value) => handleLocalPositionRequirementChange('DEF', value)}
+                  >
+                    <SelectTrigger className="w-16 h-8 bg-slate-600 border-slate-500 text-white">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-slate-700 border-slate-600">
+                      {[0, 1, 2].map(num => (
+                        <SelectItem key={num} value={num.toString()} className="text-white">
+                          {num}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="mt-2 text-slate-400 text-sm">
+                FLEX can be RB/WR/TE • Total: {
+                  Object.values(localLeagueSettings.position_requirements).reduce((sum, val) => sum + val, 0)
+                } starters, {localLeagueSettings.roster_size - Object.values(localLeagueSettings.position_requirements).reduce((sum, val) => sum + val, 0)} bench
+              </div>
+            </div>
+
+            {/* TEAM NAME MANAGEMENT - ISOLATED */}
+            <div>
+              <Label className="text-slate-300 text-base font-medium">Team Names & Phone Numbers</Label>
+              <div className="mt-2 space-y-3 max-h-48 overflow-y-auto">
+                {localTeams.map((team, index) => (
+                  <LocalTeamNameInput 
+                    key={team.id}
+                    team={team}
+                    index={index}
+                  />
+                ))}
+              </div>
+            </div>
+
+            {/* GENERATE INVITES SECTION */}
+            <div>
+              <Label className="text-slate-300 text-base font-medium">SMS Invitations</Label>
+              <div className="mt-2">
+                <Button 
+                  onClick={() => {
+                    // Use local state to generate messages
+                    const messages = localTeams.map(team => {
+                      const teamName = team.name || `Team ${localTeams.indexOf(team) + 1}`;
+                      const phoneNumber = localPhoneNumbers[team.id] || 'No phone number';
+                      const uniqueCode = Math.random().toString(36).substring(2, 14);
+                      const uniqueUrl = `${window.location.origin}/team/${uniqueCode}`;
+                      
+                      return {
+                        teamId: team.id,
+                        teamName,
+                        phoneNumber,
+                        message: `Join ${localLeagueSettings.name} as ${teamName}: ${uniqueUrl}`
+                      };
+                    });
+                    
+                    setShowInviteMessages(messages);
+                  }}
+                  className="w-full bg-blue-600 hover:bg-blue-700"
+                  disabled={localTeams.some(team => !team.name.trim() || team.name.startsWith('Team '))}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Generate SMS Invites
+                </Button>
+                <div className="text-xs text-slate-400 mt-1">
+                  All teams must be named before generating invites
+                </div>
+              </div>
+            </div>
+
+            <div className="flex space-x-2 pt-4">
+              <Button 
+                onClick={handleSaveSettings}
+                className="flex-1 bg-emerald-600 hover:bg-emerald-700"
+              >
+                <Save className="h-4 w-4 mr-2" />
+                Save Settings
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => setShowLeagueSettings(false)}
+                className="border-slate-600 text-slate-300 hover:bg-slate-700"
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  });
 
   const undoPick = async (pickId) => {
     try {
