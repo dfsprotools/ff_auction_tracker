@@ -654,6 +654,58 @@ const AuctionTracker = () => {
     </div>
   ));
 
+  // SMS Messages Display Dialog
+  const SMSMessagesDialog = () => (
+    <Dialog open={!!showInviteMessages} onOpenChange={() => setShowInviteMessages(null)}>
+      <DialogContent className="bg-slate-800 border-slate-700 max-w-lg" aria-describedby="sms-messages-description">
+        <DialogHeader>
+          <DialogTitle className="text-white">SMS Invite Messages</DialogTitle>
+          <div id="sms-messages-description" className="sr-only">
+            Copy these messages to send via SMS to your team managers
+          </div>
+        </DialogHeader>
+        <div className="space-y-4 max-h-96 overflow-y-auto">
+          {showInviteMessages && showInviteMessages.map(invite => (
+            <div key={invite.teamId} className="bg-slate-700 rounded-lg p-3">
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-emerald-400 font-medium">{invite.teamName}</span>
+                <span className="text-slate-400 text-sm">{invite.phoneNumber}</span>
+              </div>
+              <div className="bg-slate-800 rounded p-2">
+                <code className="text-white text-sm">{invite.message}</code>
+              </div>
+              <Button 
+                onClick={() => navigator.clipboard.writeText(invite.message)}
+                size="sm"
+                className="mt-2 bg-blue-600 hover:bg-blue-700"
+              >
+                Copy Message
+              </Button>
+            </div>
+          ))}
+        </div>
+        <div className="flex space-x-2 pt-4">
+          <Button 
+            onClick={() => {
+              const allMessages = showInviteMessages.map(invite => `${invite.teamName} (${invite.phoneNumber}): ${invite.message}`).join('\n\n');
+              navigator.clipboard.writeText(allMessages);
+            }}
+            className="flex-1 bg-emerald-600 hover:bg-emerald-700"
+          >
+            Copy All Messages
+          </Button>
+          <Button 
+            variant="outline" 
+            onClick={() => setShowInviteMessages(null)}
+            className="border-slate-600 text-slate-300 hover:bg-slate-700"
+          >
+            Close
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+
   const LeagueSettingsDialog = React.memo(() => (
     <Dialog open={showLeagueSettings} onOpenChange={setShowLeagueSettings}>
       <DialogContent className="bg-slate-800 border-slate-700 max-w-md" aria-describedby="league-settings-description">
