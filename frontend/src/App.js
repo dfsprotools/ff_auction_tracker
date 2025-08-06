@@ -1,5 +1,13 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import './App.css';
+
+/* Import professional sans-serif font */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* Apply font to entire app */
+* {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+}
 import axios from 'axios';
 import { Button } from './components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from './components/ui/card';
