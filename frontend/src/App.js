@@ -1288,6 +1288,33 @@ const AuctionTracker = () => {
     return calculatePlayerValue(player, positionBudget, totalAtPosition);
   }, [league, playerDatabase, calculatePositionBudgets, getPositionCounts, calculatePlayerValue]);
 
+  // Validation function to ensure total values balance
+  const validateAuctionValues = useCallback(() => {
+    if (!league || playerDatabase.length === 0) return { isValid: false, details: {} };
+    
+    const expectedTotal = league.total_teams * league.budget_per_team;
+    const undraftedPlayerValue = (playerDatabase.length - (league.total_teams * league.roster_size)) * 1;
+    const expectedDraftedTotal = expectedTotal - undraftedPlayerValue;
+    
+    let actualTotal = 0;
+    const positionTotals = {};
+    
+    playerDatabase.forEach(player => {
+      const value = getSuggestedValue(player);
+      actualTotal += value;
+      positionTotals[player.position] = (positionTotals[player.position] || 0) + value;
+    });
+    
+    return {
+      isValid: Math.abs(actualTotal - expectedTotal) < (expectedTotal * 0.05), // 5% tolerance
+      expectedTotal,
+      actualTotal,
+      difference: actualTotal - expectedTotal,
+      positionTotals,
+      undraftedPlayerValue
+    };
+  }, [league, playerDatabase, getSuggestedValue]);
+
   const PlayerRankingsDashboard = () => (
     <div className="space-y-4">
       {/* Position Tabs */}
