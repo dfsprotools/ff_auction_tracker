@@ -1315,6 +1315,17 @@ const AuctionTracker = () => {
     };
   }, [league, playerDatabase, getSuggestedValue]);
 
+  // Debug component to show value validation (can be removed later)
+  const ValueValidationDebug = () => {
+    const validation = validateAuctionValues();
+    
+    if (!validation.isValid && league && playerDatabase.length > 0) {
+      console.log('AUCTION VALUE VALIDATION:', validation);
+    }
+    
+    return null; // Hidden component for debugging
+  };
+
   const PlayerRankingsDashboard = () => (
     <div className="space-y-4">
       {/* Position Tabs */}
