@@ -1273,6 +1273,38 @@ const AuctionTracker = () => {
     return Math.max(1, baseValue);
   };
 
+  // Debug component to show value validation (can be removed later)
+  const ValueValidationDebug = () => {
+    if (!league || !playerDatabase || playerDatabase.length === 0) return null;
+    
+    const expectedTotal = league.total_teams * league.budget_per_team;
+    const undraftedPlayerValue = (playerDatabase.length - (league.total_teams * league.roster_size)) * 1;
+    
+    let actualTotal = 0;
+    const positionTotals = {};
+    
+    playerDatabase.forEach(player => {
+      const value = getSuggestedValue(player);
+      actualTotal += value;
+      positionTotals[player.position] = (positionTotals[player.position] || 0) + value;
+    });
+    
+    const isValid = Math.abs(actualTotal - expectedTotal) < (expectedTotal * 0.05);
+    
+    if (!isValid) {
+      console.log('AUCTION VALUE VALIDATION:', {
+        isValid,
+        expectedTotal,
+        actualTotal,
+        difference: actualTotal - expectedTotal,
+        positionTotals,
+        undraftedPlayerValue
+      });
+    }
+    
+    return null; // Hidden component for debugging
+  };
+
   const PlayerRankingsDashboard = () => (
     <div className="space-y-4">
       {/* Position Tabs */}
