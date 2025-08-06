@@ -201,8 +201,11 @@ const AuctionTracker = () => {
         }
       });
       
+      // Mark that commissioner has named teams - enable team user login
+      setCommissionerTeamsNamed(true);
+      
       setShowLeagueSettings(false);
-      toast.success('League settings updated successfully!');
+      toast.success('League settings updated! Team users can now join the league.');
     } catch (error) {
       console.error('Error updating league settings:', error);
       toast.error('Failed to update league settings');
