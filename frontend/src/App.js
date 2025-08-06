@@ -117,11 +117,21 @@ const AuctionTracker = () => {
   const authenticateCommissioner = () => {
     if (commissionerPassword === COMMISSIONER_PASSWORD) {
       setUserRole('commissioner');
-      setCurrentUser('Commissioner');
+      
+      // Assign commissioner to Team 1 by default
+      const team1 = league?.teams?.[0];
+      if (team1) {
+        setCurrentUser(team1.id);
+        setSelectedTeam(team1.id);
+        setClaimedTeams(prev => new Set([...prev, team1.id])); // Claim Team 1 for commissioner
+      } else {
+        setCurrentUser('Commissioner');
+      }
+      
       setShowUserSelection(false);
       setShowPasswordPrompt(false);
       setCommissionerPassword('');
-      toast.success('Commissioner access granted');
+      toast.success('Commissioner access granted - You are assigned to Team 1');
     } else {
       toast.error('Invalid commissioner password');
       setCommissionerPassword('');
