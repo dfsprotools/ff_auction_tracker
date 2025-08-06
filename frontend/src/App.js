@@ -798,6 +798,9 @@ const AuctionTracker = () => {
                 <div key={`team-${team.id}`} className="flex items-center space-x-2">
                   <span className="text-slate-400 text-sm w-16">Team {index + 1}:</span>
                   <Input
+                    ref={(el) => {
+                      if (el) teamNameRefs.current[team.id] = el;
+                    }}
                     value={team.name}
                     onChange={(e) => updateTeamName(team.id, e.target.value)}
                     className="bg-slate-700 border-slate-600 text-white flex-1"
