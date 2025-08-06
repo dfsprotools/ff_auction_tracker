@@ -1223,9 +1223,11 @@ const AuctionTracker = () => {
   // Get total players at each position from database
   const getPositionCounts = useCallback(() => {
     const counts = {};
-    playerDatabase.forEach(player => {
-      counts[player.position] = (counts[player.position] || 0) + 1;
-    });
+    if (playerDatabase && playerDatabase.length > 0) {
+      playerDatabase.forEach(player => {
+        counts[player.position] = (counts[player.position] || 0) + 1;
+      });
+    }
     return counts;
   }, [playerDatabase]);
 
@@ -1267,18 +1269,12 @@ const AuctionTracker = () => {
       baseValue = Math.round(baseValue * 1.25);
     }
     
-    // 3. Rookie premium for high draft picks (if we had draft data)
-    // This would be: baseValue = Math.round(baseValue * 1.15) for high rookies
-    
-    // 4. Injury discount (if we had injury data)
-    // This would be: baseValue = Math.round(baseValue * 0.85) for injury-prone players
-    
     return Math.max(1, baseValue);
   }, [league]);
 
   // Enhanced suggested value function with dynamic calculation
   const getSuggestedValue = useCallback((player) => {
-    if (!league || playerDatabase.length === 0) return 1;
+    if (!league || !playerDatabase || playerDatabase.length === 0) return 1;
     
     const positionBudgets = calculatePositionBudgets();
     const positionCounts = getPositionCounts();
@@ -1296,7 +1292,7 @@ const AuctionTracker = () => {
 
   // Validation function to ensure total values balance
   const validateAuctionValues = useCallback(() => {
-    if (!league || playerDatabase.length === 0) return { isValid: false, details: {} };
+    if (!league || !playerDatabase || playerDatabase.length === 0) return { isValid: false, details: {} };
     
     const expectedTotal = league.total_teams * league.budget_per_team;
     const undraftedPlayerValue = (playerDatabase.length - (league.total_teams * league.roster_size)) * 1;
