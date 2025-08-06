@@ -1209,30 +1209,31 @@ const AuctionTracker = () => {
     DST: 0.005 // 0.5% - $21 of $4,200 actual spend
   };
 
-  // Calculate position budgets dynamically based on league settings
-  const calculatePositionBudgets = useCallback(() => {
-    if (!league) return {};
+  // Enhanced suggested value function with dynamic calculation
+  const getSuggestedValue = (player) => {
+    if (!league || !playerDatabase || playerDatabase.length === 0) return 1;
     
+    // Calculate position budgets
     const totalBudget = league.total_teams * league.budget_per_team;
-    return Object.entries(POSITION_BUDGETS).reduce((budgets, [pos, pct]) => {
-      budgets[pos] = totalBudget * pct;
-      return budgets;
-    }, {});
-  }, [league]);
-
-  // Get total players at each position from database
-  const getPositionCounts = useCallback(() => {
-    const counts = {};
-    if (playerDatabase && playerDatabase.length > 0) {
-      playerDatabase.forEach(player => {
-        counts[player.position] = (counts[player.position] || 0) + 1;
-      });
+    const positionBudgets = {};
+    Object.entries(POSITION_BUDGETS).forEach(([pos, pct]) => {
+      positionBudgets[pos] = totalBudget * pct;
+    });
+    
+    // Get position counts
+    const positionCounts = {};
+    playerDatabase.forEach(p => {
+      positionCounts[p.position] = (positionCounts[p.position] || 0) + 1;
+    });
+    
+    const playerPosition = player.position;
+    const positionBudget = positionBudgets[playerPosition];
+    const totalAtPosition = positionCounts[playerPosition];
+    
+    if (!positionBudget || !totalAtPosition) {
+      return 1;
     }
-    return counts;
-  }, [playerDatabase]);
-
-  // Calculate dynamic player value based on position budget and rank percentile
-  const calculatePlayerValue = useCallback((player, positionBudget, totalAtPosition) => {
+    
     // Extract position rank number from strings like "QB01", "RB02", etc.
     const posRankMatch = player.pos_rank?.match(/\d+/);
     const rank = posRankMatch ? parseInt(posRankMatch[0]) : 999;
@@ -1252,7 +1253,7 @@ const AuctionTracker = () => {
     }
     
     // Calculate base value - adjusted denominator for proper scaling
-    const startingPositionSlots = Math.min(totalAtPosition, league?.total_teams || 14);
+    const startingPositionSlots = Math.min(totalAtPosition, league.total_teams);
     let baseValue = Math.max(1, Math.round(positionBudget * budgetShare / Math.max(1, startingPositionSlots * 0.6)));
     
     // Apply market adjustments
@@ -1270,62 +1271,6 @@ const AuctionTracker = () => {
     }
     
     return Math.max(1, baseValue);
-  }, [league]);
-
-  // Enhanced suggested value function with dynamic calculation
-  const getSuggestedValue = useCallback((player) => {
-    if (!league || !playerDatabase || playerDatabase.length === 0) return 1;
-    
-    const positionBudgets = calculatePositionBudgets();
-    const positionCounts = getPositionCounts();
-    
-    const playerPosition = player.position;
-    const positionBudget = positionBudgets[playerPosition];
-    const totalAtPosition = positionCounts[playerPosition];
-    
-    if (!positionBudget || !totalAtPosition) {
-      return 1;
-    }
-    
-    return calculatePlayerValue(player, positionBudget, totalAtPosition);
-  }, [league, playerDatabase, calculatePositionBudgets, getPositionCounts, calculatePlayerValue]);
-
-  // Validation function to ensure total values balance
-  const validateAuctionValues = useCallback(() => {
-    if (!league || !playerDatabase || playerDatabase.length === 0) return { isValid: false, details: {} };
-    
-    const expectedTotal = league.total_teams * league.budget_per_team;
-    const undraftedPlayerValue = (playerDatabase.length - (league.total_teams * league.roster_size)) * 1;
-    const expectedDraftedTotal = expectedTotal - undraftedPlayerValue;
-    
-    let actualTotal = 0;
-    const positionTotals = {};
-    
-    playerDatabase.forEach(player => {
-      const value = getSuggestedValue(player);
-      actualTotal += value;
-      positionTotals[player.position] = (positionTotals[player.position] || 0) + value;
-    });
-    
-    return {
-      isValid: Math.abs(actualTotal - expectedTotal) < (expectedTotal * 0.05), // 5% tolerance
-      expectedTotal,
-      actualTotal,
-      difference: actualTotal - expectedTotal,
-      positionTotals,
-      undraftedPlayerValue
-    };
-  }, [league, playerDatabase, getSuggestedValue]);
-
-  // Debug component to show value validation (can be removed later)
-  const ValueValidationDebug = () => {
-    const validation = validateAuctionValues();
-    
-    if (!validation.isValid && league && playerDatabase.length > 0) {
-      console.log('AUCTION VALUE VALIDATION:', validation);
-    }
-    
-    return null; // Hidden component for debugging
   };
 
   const PlayerRankingsDashboard = () => (
