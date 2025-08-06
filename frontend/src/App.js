@@ -1249,8 +1249,9 @@ const AuctionTracker = () => {
       budgetShare = Math.max(0.001, (1 - percentile) * 0.057); // $1-5
     }
     
-    // Calculate base value
-    let baseValue = Math.max(1, Math.round(positionBudget * budgetShare / Math.max(1, totalAtPosition * 0.8)));
+    // Calculate base value - adjusted denominator for proper scaling
+    const startingPositionSlots = Math.min(totalAtPosition, league?.total_teams || 14);
+    let baseValue = Math.max(1, Math.round(positionBudget * budgetShare / Math.max(1, startingPositionSlots * 0.6)));
     
     // Apply market adjustments
     
@@ -1261,14 +1262,19 @@ const AuctionTracker = () => {
       baseValue = Math.round(baseValue * 1.10); // +10% RB scarcity premium
     }
     
-    // 2. Rookie premium for high draft picks (if we had draft data)
+    // 2. Additional boost for top-tier players
+    if (percentile <= 0.05) { // Top 5% get extra boost
+      baseValue = Math.round(baseValue * 1.25);
+    }
+    
+    // 3. Rookie premium for high draft picks (if we had draft data)
     // This would be: baseValue = Math.round(baseValue * 1.15) for high rookies
     
-    // 3. Injury discount (if we had injury data)
+    // 4. Injury discount (if we had injury data)
     // This would be: baseValue = Math.round(baseValue * 0.85) for injury-prone players
     
     return Math.max(1, baseValue);
-  }, []);
+  }, [league]);
 
   // Enhanced suggested value function with dynamic calculation
   const getSuggestedValue = useCallback((player) => {
