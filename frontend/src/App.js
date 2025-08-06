@@ -580,7 +580,7 @@ const AuctionTracker = () => {
     </div>
   );
 
-  const LeagueSettingsDialog = () => (
+  const LeagueSettingsDialog = React.memo(() => (
     <Dialog open={showLeagueSettings} onOpenChange={setShowLeagueSettings}>
       <DialogContent className="bg-slate-800 border-slate-700 max-w-md" aria-describedby="league-settings-description">
         <DialogHeader>
@@ -800,23 +800,18 @@ const AuctionTracker = () => {
             </div>
           </div>
 
-          {/* TEAM NAME MANAGEMENT */}
+          {/* TEAM NAME MANAGEMENT - OPTIMIZED */}
           <div>
             <Label className="text-slate-300 text-base font-medium">Team Names</Label>
             <div className="mt-2 space-y-2 max-h-48 overflow-y-auto">
               {league && league.teams.map((team, index) => (
-                <div key={`team-${team.id}`} className="flex items-center space-x-2">
-                  <span className="text-slate-400 text-sm w-16">Team {index + 1}:</span>
-                  <Input
-                    ref={(el) => {
-                      if (el) teamNameRefs.current[team.id] = el;
-                    }}
-                    value={team.name}
-                    onChange={(e) => updateTeamName(team.id, e.target.value)}
-                    className="bg-slate-700 border-slate-600 text-white flex-1"
-                    placeholder={`Team ${index + 1} name`}
-                  />
-                </div>
+                <TeamNameInput 
+                  key={team.id}
+                  team={team} 
+                  index={index} 
+                  updateTeamName={updateTeamName}
+                  teamNameRefs={teamNameRefs}
+                />
               ))}
             </div>
           </div>
@@ -840,7 +835,7 @@ const AuctionTracker = () => {
         </div>
       </DialogContent>
     </Dialog>
-  );
+  ));
 
   const undoPick = async (pickId) => {
     try {
