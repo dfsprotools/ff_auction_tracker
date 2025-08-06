@@ -456,27 +456,56 @@ const AuctionTracker = () => {
           >
             <Settings className="h-5 w-5 mr-2" />
             Commissioner
-            <div className="text-sm text-emerald-200 ml-2">(Requires Password)</div>
+            <div className="text-sm text-emerald-200 ml-2">(Team 1 + Admin Access)</div>
           </Button>
 
           {/* Team Selection */}
           {league && (
             <div className="space-y-2">
               <div className="text-slate-300 text-sm font-medium text-center">
-                Or select your team:
+                {commissionerTeamsNamed ? 'Select your team:' : 'Waiting for Commissioner to name teams...'}
               </div>
+              
+              {!commissionerTeamsNamed && (
+                <div className="text-yellow-400 text-xs text-center bg-yellow-500/10 rounded p-2 border border-yellow-500/20">
+                  ⚠️ Commissioner must login first and set team names before team users can join
+                </div>
+              )}
+              
               <div className="grid grid-cols-2 gap-2 max-h-64 overflow-y-auto">
-                {league.teams.map(team => (
-                  <Button
-                    key={team.id}
-                    onClick={() => selectUser('team', team.id)}
-                    variant="outline"
-                    className="border-slate-600 text-slate-300 hover:bg-slate-700 hover:text-white p-3"
-                  >
-                    <Users className="h-4 w-4 mr-2" />
-                    {team.name}
-                  </Button>
-                ))}
+                {league.teams.map((team, index) => {
+                  const isClaimed = claimedTeams.has(team.id);
+                  const isCommissionerTeam = index === 0; // Team 1 is commissioner's team
+                  
+                  return (
+                    <Button
+                      key={team.id}
+                      onClick={() => selectUser('team', team.id)}
+                      variant="outline"
+                      disabled={!commissionerTeamsNamed || isClaimed}
+                      className={`border-slate-600 text-slate-300 hover:bg-slate-700 hover:text-white p-3 ${
+                        isClaimed 
+                          ? 'opacity-50 cursor-not-allowed' 
+                          : 'hover:bg-slate-700'
+                      } ${
+                        isCommissionerTeam 
+                          ? 'border-emerald-500/50 bg-emerald-500/10' 
+                          : ''
+                      }`}
+                    >
+                      <Users className="h-4 w-4 mr-2" />
+                      <div className="text-left">
+                        <div>{team.name}</div>
+                        {isCommissionerTeam && (
+                          <div className="text-xs text-emerald-400">Commissioner's Team</div>
+                        )}
+                        {isClaimed && !isCommissionerTeam && (
+                          <div className="text-xs text-red-400">Claimed</div>
+                        )}
+                      </div>
+                    </Button>
+                  );
+                })}
               </div>
             </div>
           )}
@@ -489,6 +518,7 @@ const AuctionTracker = () => {
           <Card className="bg-white/10 backdrop-blur-md border-white/20 w-full max-w-sm">
             <CardHeader>
               <CardTitle className="text-white text-xl text-center">Commissioner Access</CardTitle>
+              <div className="text-slate-400 text-sm text-center">You will be assigned to Team 1</div>
             </CardHeader>
             <CardContent className="space-y-4">
               <Input
