@@ -59,6 +59,7 @@ const AuctionTracker = () => {
   const [commissionerTeamsNamed, setCommissionerTeamsNamed] = useState(false); // Track if commissioner has named teams
   const [teamPhoneNumbers, setTeamPhoneNumbers] = useState({}); // Track phone numbers for each team
   const [teamInviteUrls, setTeamInviteUrls] = useState({}); // Track unique URLs for each team
+  const [showInviteMessages, setShowInviteMessages] = useState(null); // Show generated invite messages
 
   // Add these refs to your existing state declarations
   const searchInputRef = useRef(null);
