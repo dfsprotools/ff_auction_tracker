@@ -883,7 +883,10 @@ const AuctionTracker = () => {
                   team={team} 
                   index={index} 
                   updateTeamName={updateTeamName}
+                  updateTeamPhoneNumber={updateTeamPhoneNumber}
                   teamNameRefs={teamNameRefs}
+                  teamPhoneRefs={teamPhoneRefs}
+                  teamPhoneNumbers={teamPhoneNumbers}
                 />
               ))}
             </div>
