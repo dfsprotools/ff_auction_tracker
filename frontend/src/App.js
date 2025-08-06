@@ -1446,8 +1446,8 @@ const AuctionTracker = () => {
       <div className="mb-6">
         <Tabs value={activeView} onValueChange={setActiveView} className="w-fit">
           <TabsList className="bg-slate-800 border-slate-700">
-            <TabsTrigger value="control" className="text-white">Control Interface</TabsTrigger>
-            <TabsTrigger value="display" className="text-white">TV Display</TabsTrigger>
+            <TabsTrigger value="control" className="text-white">Draft HQ</TabsTrigger>
+            <TabsTrigger value="display" className="text-white">Auction Tracker</TabsTrigger>
           </TabsList>
         </Tabs>
       </div>
