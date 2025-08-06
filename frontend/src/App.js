@@ -946,9 +946,20 @@ const AuctionTracker = () => {
       {/* Search */}
       <div className="relative">
         <Input
+          ref={userRole === 'team' ? searchInputRef : undefined}
           placeholder="Search players..."
           value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
+          onChange={(e) => {
+            setSearchQuery(e.target.value);
+            // Apply same cursor fix for team users
+            if (userRole === 'team') {
+              setTimeout(() => {
+                if (searchInputRef.current && document.activeElement !== searchInputRef.current) {
+                  searchInputRef.current.focus();
+                }
+              }, 0);
+            }
+          }}
           className="bg-slate-700 border-slate-600 text-white pr-10"
         />
         <Search className="absolute right-3 top-3 h-4 w-4 text-slate-400" />
