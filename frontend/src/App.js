@@ -64,6 +64,7 @@ const AuctionTracker = () => {
   const searchInputRef = useRef(null);
   const bidInputRef = useRef(null);
   const teamNameRefs = useRef({});
+  const teamPhoneRefs = useRef({}); // Add phone number refs
 
   // Simple authentication - in production this would be more secure
   const COMMISSIONER_PASSWORD = 'draft2024';
