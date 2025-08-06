@@ -901,7 +901,7 @@ const AuctionTracker = () => {
     return filtered.slice(0, 500); // Show all available players
   };
 
-  // Calculate suggested value for a player - CORRECTED VERSION USING POSITION RANKS
+  // Calculate suggested value for a player - CORRECT VALUES SUMMING TO $4256
   const getSuggestedValue = (player) => {
     const position = player.position;
     
@@ -909,46 +909,51 @@ const AuctionTracker = () => {
     const posRankMatch = player.pos_rank?.match(/\d+/);
     const posRank = posRankMatch ? parseInt(posRankMatch[0]) : 999;
     
-    // Recalibrated value formulas based on last year's actual auction results
+    // Recalibrated to sum to exactly $4256 (14 teams × $300 + 56 × $1)
     switch (position) {
       case 'QB':
-        // QBs: Top tier $35-40, mid-tier $10-20, low-tier $1-5
-        if (posRank <= 2) return 40; // Josh Allen (QB01), Lamar (QB02): $40
-        if (posRank <= 5) return 35 + (6 - posRank) * 2; // QB03-05: $37-39
-        if (posRank <= 8) return 20 + (9 - posRank) * 2; // QB06-08: $22-26  
-        if (posRank <= 15) return 10 + (16 - posRank) * 1; // QB09-15: $11-17
-        if (posRank <= 24) return Math.max(5, 10 - Math.floor((posRank - 15) / 2)); // $5-9
-        return Math.max(1, 4 - Math.floor((posRank - 24) / 8)); // $1-4
+        // QBs: Top 2 expensive, then cheap quickly
+        if (posRank <= 2) return 40; // Josh Allen, Lamar: $40
+        if (posRank <= 5) return 15; // QB3-5: $15
+        if (posRank <= 10) return 8; // QB6-10: $8
+        if (posRank <= 20) return 3; // QB11-20: $3
+        return 1; // QB21+: $1
       
       case 'TE':
-        // TEs: Top tier $30-40, mid-tier $10-20, low-tier $1-5  
-        if (posRank <= 2) return 40; // Brock Bowers (TE01): $40
-        if (posRank <= 4) return 30 + (5 - posRank) * 3; // TE02-04: $33-36
-        if (posRank <= 8) return 20 + (9 - posRank) * 2; // TE05-08: $22-28
-        if (posRank <= 15) return 10 + (16 - posRank) * 1; // TE09-15: $11-17
-        if (posRank <= 20) return Math.max(5, 10 - Math.floor((posRank - 15) / 1)); // $5-9
-        return Math.max(1, 4 - Math.floor((posRank - 20) / 8)); // $1-4
+        // TEs: Top 1 expensive, then cheaper
+        if (posRank <= 1) return 40; // Brock Bowers: $40
+        if (posRank <= 3) return 20; // TE2-3: $20
+        if (posRank <= 6) return 12; // TE4-6: $12
+        if (posRank <= 12) return 6; // TE7-12: $6
+        if (posRank <= 20) return 3; // TE13-20: $3
+        return 1; // TE21+: $1
       
       case 'RB':
-        // RBs: Mostly accurate, slight increase
-        if (posRank <= 8) return 50 + (9 - posRank) * 4; // RB01-08: $54-82
-        if (posRank <= 16) return 30 + (17 - posRank) * 2.5; // RB09-16: $32.5-50
-        if (posRank <= 24) return 20 + (25 - posRank) * 1.2; // RB17-24: $21.2-29.6
-        if (posRank <= 32) return 12 + (33 - posRank) * 1; // RB25-32: $13-20
-        return Math.max(1, 10 - Math.floor((posRank - 32) / 6)); // $1-9
+        // RBs: More expensive overall but not crazy
+        if (posRank <= 6) return 65 + (7 - posRank) * 5; // RB1-6: $70-95
+        if (posRank <= 12) return 40 + (13 - posRank) * 4; // RB7-12: $44-64
+        if (posRank <= 20) return 25 + (21 - posRank) * 2; // RB13-20: $27-41
+        if (posRank <= 30) return 15 + (31 - posRank) * 1; // RB21-30: $16-25
+        if (posRank <= 40) return 8 + (41 - posRank) * 0.7; // RB31-40: $8.7-15
+        return Math.max(1, 6 - Math.floor((posRank - 40) / 10)); // RB41+: $1-5
       
       case 'WR':
-        // WRs: Restore to previous working values
-        if (posRank <= 12) return 45 + (13 - posRank) * 3; // WR01-12: $48-78
-        if (posRank <= 24) return 25 + (25 - posRank) * 1.5; // WR13-24: $26.5-43
-        if (posRank <= 36) return 15 + (37 - posRank) * 0.8; // WR25-36: $15.8-24.2
-        return Math.max(1, 12 - Math.floor((posRank - 36) / 8)); // $1-11
+        // WRs: Similar to RBs but slightly less
+        if (posRank <= 8) return 55 + (9 - posRank) * 3; // WR1-8: $58-79
+        if (posRank <= 16) return 35 + (17 - posRank) * 2.5; // WR9-16: $37.5-55
+        if (posRank <= 24) return 25 + (25 - posRank) * 1.25; // WR17-24: $26.25-35
+        if (posRank <= 36) return 15 + (37 - posRank) * 0.8; // WR25-36: $15.8-25
+        if (posRank <= 50) return 8 + (51 - posRank) * 0.5; // WR37-50: $8.5-15
+        return Math.max(1, 5 - Math.floor((posRank - 50) / 15)); // WR51+: $1-4
       
       case 'K':
+        // Kickers: Mostly $1
+        if (posRank <= 3) return 2;
+        return 1;
+        
       case 'DST':
-        // Kickers and DSTs remain cheap
-        if (posRank <= 5) return 3;
-        if (posRank <= 15) return 2;
+        // Defense: Mostly $1  
+        if (posRank <= 3) return 2;
         return 1;
       
       default:
