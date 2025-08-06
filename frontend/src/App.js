@@ -873,10 +873,10 @@ const AuctionTracker = () => {
             </div>
           </div>
 
-          {/* TEAM NAME MANAGEMENT - OPTIMIZED */}
+          {/* TEAM NAME MANAGEMENT - ENHANCED WITH SMS SYSTEM */}
           <div>
-            <Label className="text-slate-300 text-base font-medium">Team Names</Label>
-            <div className="mt-2 space-y-2 max-h-48 overflow-y-auto">
+            <Label className="text-slate-300 text-base font-medium">Team Names & Phone Numbers</Label>
+            <div className="mt-2 space-y-3 max-h-48 overflow-y-auto">
               {league && league.teams.map((team, index) => (
                 <TeamNameInput 
                   key={team.id}
@@ -889,6 +889,28 @@ const AuctionTracker = () => {
                   teamPhoneNumbers={teamPhoneNumbers}
                 />
               ))}
+            </div>
+          </div>
+
+          {/* GENERATE INVITES SECTION */}
+          <div>
+            <Label className="text-slate-300 text-base font-medium">SMS Invitations</Label>
+            <div className="mt-2">
+              <Button 
+                onClick={() => {
+                  const messages = generateInviteMessages();
+                  // Show the messages in a dialog for copy/paste
+                  setShowInviteMessages(messages);
+                }}
+                className="w-full bg-blue-600 hover:bg-blue-700"
+                disabled={!league || league.teams.some(team => !team.name.trim() || team.name.startsWith('Team '))}
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Generate SMS Invites
+              </Button>
+              <div className="text-xs text-slate-400 mt-1">
+                All teams must be named before generating invites
+              </div>
             </div>
           </div>
 
