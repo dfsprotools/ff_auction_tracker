@@ -92,15 +92,26 @@ const AuctionTracker = () => {
       return;
     }
     
-    // For team members, directly set user
+    // For team members - check if teams have been named by commissioner
+    if (!commissionerTeamsNamed) {
+      toast.error('Commissioner must login first and name teams before team users can join');
+      return;
+    }
+    
+    // Check if team is already claimed
+    if (claimedTeams.has(teamId)) {
+      toast.error('This team has already been claimed by another user');
+      return;
+    }
+    
+    // Claim the team
+    setClaimedTeams(prev => new Set([...prev, teamId]));
     setUserRole(role);
     setCurrentUser(teamId);
     setShowUserSelection(false);
+    setSelectedTeam(teamId); // Auto-select their team
     
-    // If team member, set their team as selected
-    if (role === 'team' && teamId) {
-      setSelectedTeam(teamId);
-    }
+    toast.success(`Successfully claimed ${league.teams.find(t => t.id === teamId)?.name || 'team'}!`);
   };
 
   const authenticateCommissioner = () => {
