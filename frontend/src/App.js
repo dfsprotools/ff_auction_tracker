@@ -580,6 +580,22 @@ const AuctionTracker = () => {
     </div>
   );
 
+  // Optimized TeamNameInput component to prevent flashing
+  const TeamNameInput = React.memo(({ team, index, updateTeamName, teamNameRefs }) => (
+    <div className="flex items-center space-x-2">
+      <span className="text-slate-400 text-sm w-16">Team {index + 1}:</span>
+      <Input
+        ref={(el) => {
+          if (el) teamNameRefs.current[team.id] = el;
+        }}
+        value={team.name}
+        onChange={(e) => updateTeamName(team.id, e.target.value)}
+        className="bg-slate-700 border-slate-600 text-white flex-1"
+        placeholder={`Team ${index + 1} name`}
+      />
+    </div>
+  ));
+
   const LeagueSettingsDialog = React.memo(() => (
     <Dialog open={showLeagueSettings} onOpenChange={setShowLeagueSettings}>
       <DialogContent className="bg-slate-800 border-slate-700 max-w-md" aria-describedby="league-settings-description">
