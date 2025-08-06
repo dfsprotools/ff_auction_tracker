@@ -1048,150 +1048,207 @@ const AuctionTracker = () => {
     </div>
   );
 
-  const CommissionerControls = () => (
-    <div className="space-y-4">
-      {/* League Header */}
-      <Card className="bg-white/10 backdrop-blur-md border-white/20">
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="text-white text-lg">{league.name}</CardTitle>
-              <div className="text-slate-300 text-sm">
-                {league.total_teams} Teams • ${league.budget_per_team} Budget
-              </div>
-            </div>
-            <Button 
-              onClick={() => setShowLeagueSettings(true)}
-              variant="outline"
-              className="border-slate-600 text-slate-300 hover:bg-slate-700"
-            >
-              <Settings className="h-4 w-4 mr-2" />
-              Settings
-            </Button>
-          </div>
-        </CardHeader>
-      </Card>
-
-      {/* Draft Entry Form */}
-      <Card className="bg-white/10 backdrop-blur-md border-white/20">
-        <CardHeader>
-          <CardTitle className="text-white text-lg">Draft Player</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="relative">
-            <Input
-              ref={searchInputRef}
-              placeholder="Search players..."
-              value={searchQuery}
-              onChange={(e) => handleSearchQueryChange(e.target.value)}
-              className="bg-slate-700 border-slate-600 text-white pr-10"
-            />
-            <Search className="absolute right-3 top-3 h-4 w-4 text-slate-400" />
-          </div>
-          
-          {searchResults.length > 0 && searchQuery && (
-            <div className="max-h-32 overflow-y-auto space-y-2">
-              {searchResults.slice(0, 5).map((player, index) => (
-                <div
-                  key={index}
-                  onClick={() => {
-                    setSearchQuery(player.name);
-                    setSearchResults([player]); // Set exactly one player for draft button
-                  }}
-                  className="p-2 bg-slate-700 rounded cursor-pointer hover:bg-slate-600 transition-colors"
-                >
-                  <div className="text-white text-sm font-medium">
-                    {player.name} ({player.position}, {player.nfl_team})
+  const CommissionerControls = () => {
+    // Get commissioner's team (Team 1)
+    const commissionerTeam = league?.teams?.[0];
+    
+    return (
+      <div className="space-y-4">
+        {/* Commissioner Team Dashboard */}
+        {commissionerTeam && (
+          <Card className="bg-white/10 backdrop-blur-md border-white/20">
+            <CardHeader>
+              <CardTitle className="text-white text-lg">My Team Dashboard</CardTitle>
+              <div className="text-slate-300 text-sm">{commissionerTeam.name} (Commissioner)</div>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {/* Budget Info */}
+              <div className="bg-slate-800/50 rounded-lg p-3 border-l-4 border-emerald-500">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-slate-300 font-medium">MAX BID:</span>
+                  <span className={`text-xl ${getMaxBidColorClass(commissionerTeam.max_bid)}`}>
+                    ${commissionerTeam.max_bid}
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Budget Left:</span>
+                    <span className="text-emerald-400 font-medium">${commissionerTeam.remaining}</span>
                   </div>
-                  <div className="text-slate-400 text-xs">
-                    ETR #{player.etr_rank} • {player.pos_rank}
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Spots Left:</span>
+                    <span className="text-white font-medium">{commissionerTeam.remaining_spots || 0}</span>
                   </div>
                 </div>
-              ))}
+              </div>
+
+              {/* My Roster */}
+              <div>
+                <h3 className="text-white font-medium mb-2">My Roster ({commissionerTeam.roster.length}/{league.roster_size})</h3>
+                <div className="space-y-2 max-h-32 overflow-y-auto">
+                  {commissionerTeam.roster.slice(-3).map(pick => (
+                    <div key={pick.id} className="flex items-center justify-between bg-slate-800/50 rounded p-2">
+                      <div>
+                        <div className="text-white text-sm font-medium">{pick.player.name}</div>
+                        <div className="text-xs text-slate-400">
+                          {pick.player.position} • {pick.player.nfl_team}
+                        </div>
+                      </div>
+                      <span className="text-emerald-400 font-medium">${pick.amount}</span>
+                    </div>
+                  ))}
+                  {commissionerTeam.roster.length === 0 && (
+                    <div className="text-slate-500 text-sm italic">No players drafted yet</div>
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* League Header */}
+        <Card className="bg-white/10 backdrop-blur-md border-white/20">
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-white text-lg">{league.name}</CardTitle>
+                <div className="text-slate-300 text-sm">
+                  {league.total_teams} Teams • ${league.budget_per_team} Budget
+                </div>
+              </div>
+              <Button 
+                onClick={() => setShowLeagueSettings(true)}
+                variant="outline"
+                className="border-slate-600 text-slate-300 hover:bg-slate-700"
+              >
+                <Settings className="h-4 w-4 mr-2" />
+                Settings
+              </Button>
             </div>
-          )}
+          </CardHeader>
+        </Card>
 
-          <Select value={selectedTeam} onValueChange={setSelectedTeam}>
-            <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
-              <SelectValue placeholder="Select team" />
-            </SelectTrigger>
-            <SelectContent className="bg-slate-700 border-slate-600">
-              {league.teams.map(team => (
-                <SelectItem key={team.id} value={team.id} className="text-white">
-                  <div className="flex justify-between w-full">
-                    <span>{team.name}</span>
-                    <span className="ml-4 text-slate-400">
-                      Max: <span className={getMaxBidColorClass(team.max_bid).replace('font-bold', '')}>${team.max_bid}</span>
-                    </span>
-                  </div>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          <Input
-            ref={bidInputRef}
-            type="number"
-            placeholder="Winning bid amount"
-            value={bidAmount}
-            onChange={(e) => handleBidAmountChange(e.target.value)}
-            className="bg-slate-700 border-slate-600 text-white"
-            min="1"
-            step="1"
-            inputMode="numeric"
-            autoComplete="off"
-          />
-
-          {searchResults.length === 1 && selectedTeam && bidAmount && parseInt(bidAmount) > 0 && (
-            <Button
-              onClick={() => addDraftPick(searchResults[0])}
-              className="w-full bg-emerald-600 hover:bg-emerald-700"
-            >
-              Draft {searchResults[0].name} for ${bidAmount}
-            </Button>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Recent Picks */}
-      <Card className="bg-white/10 backdrop-blur-md border-white/20">
-        <CardHeader>
-          <CardTitle className="text-white text-lg">Recent Picks</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-2 max-h-48 overflow-y-auto">
-            {league.all_picks.slice(-10).reverse().map(pick => {
-              const team = league.teams.find(t => t.id === pick.team_id);
-              return (
-                <div key={pick.id} className="flex items-center justify-between bg-slate-800/50 rounded p-2">
-                  <div>
-                    <div className="text-white text-sm font-medium">{pick.player.name}</div>
-                    <div className="text-xs text-slate-400">
-                      {team?.name} • {pick.player.position}
+        {/* Draft Entry Form */}
+        <Card className="bg-white/10 backdrop-blur-md border-white/20">
+          <CardHeader>
+            <CardTitle className="text-white text-lg">Draft Player</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="relative">
+              <Input
+                ref={searchInputRef}
+                placeholder="Search players..."
+                value={searchQuery}
+                onChange={(e) => handleSearchQueryChange(e.target.value)}
+                className="bg-slate-700 border-slate-600 text-white pr-10"
+              />
+              <Search className="absolute right-3 top-3 h-4 w-4 text-slate-400" />
+            </div>
+            
+            {searchResults.length > 0 && searchQuery && (
+              <div className="max-h-32 overflow-y-auto space-y-2">
+                {searchResults.slice(0, 5).map((player, index) => (
+                  <div
+                    key={index}
+                    onClick={() => {
+                      setSearchQuery(player.name);
+                      setSearchResults([player]); // Set exactly one player for draft button
+                    }}
+                    className="p-2 bg-slate-700 rounded cursor-pointer hover:bg-slate-600 transition-colors"
+                  >
+                    <div className="text-white text-sm font-medium">
+                      {player.name} ({player.position}, {player.nfl_team})
+                    </div>
+                    <div className="text-slate-400 text-xs">
+                      ETR #{player.etr_rank} • {player.pos_rank}
                     </div>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <span className="text-emerald-400 font-medium">${pick.amount}</span>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => undoPick(pick.id)}
-                      className="h-6 w-6 p-0 text-slate-400 hover:text-red-400"
-                    >
-                      <Undo2 className="h-3 w-3" />
-                    </Button>
-                  </div>
-                </div>
-              );
-            })}
-            {league.all_picks.length === 0 && (
-              <div className="text-slate-500 text-sm italic">No picks yet</div>
+                ))}
+              </div>
             )}
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
+
+            <Select value={selectedTeam} onValueChange={setSelectedTeam}>
+              <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
+                <SelectValue placeholder="Select team" />
+              </SelectTrigger>
+              <SelectContent className="bg-slate-700 border-slate-600">
+                {league.teams.map(team => (
+                  <SelectItem key={team.id} value={team.id} className="text-white">
+                    <div className="flex justify-between w-full">
+                      <span>{team.name}</span>
+                      <span className="ml-4 text-slate-400">
+                        Max: <span className={getMaxBidColorClass(team.max_bid).replace('font-bold', '')}>${team.max_bid}</span>
+                      </span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Input
+              ref={bidInputRef}
+              type="number"
+              placeholder="Winning bid amount"
+              value={bidAmount}
+              onChange={(e) => handleBidAmountChange(e.target.value)}
+              className="bg-slate-700 border-slate-600 text-white"
+              min="1"
+              step="1"
+              inputMode="numeric"
+              autoComplete="off"
+            />
+
+            {searchResults.length === 1 && selectedTeam && bidAmount && parseInt(bidAmount) > 0 && (
+              <Button
+                onClick={() => addDraftPick(searchResults[0])}
+                className="w-full bg-emerald-600 hover:bg-emerald-700"
+              >
+                Draft {searchResults[0].name} for ${bidAmount}
+              </Button>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Recent Picks */}
+        <Card className="bg-white/10 backdrop-blur-md border-white/20">
+          <CardHeader>
+            <CardTitle className="text-white text-lg">Recent Picks</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2 max-h-48 overflow-y-auto">
+              {league.all_picks.slice(-10).reverse().map(pick => {
+                const team = league.teams.find(t => t.id === pick.team_id);
+                return (
+                  <div key={pick.id} className="flex items-center justify-between bg-slate-800/50 rounded p-2">
+                    <div>
+                      <div className="text-white text-sm font-medium">{pick.player.name}</div>
+                      <div className="text-xs text-slate-400">
+                        {team?.name} • {pick.player.position}
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <span className="text-emerald-400 font-medium">${pick.amount}</span>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => undoPick(pick.id)}
+                        className="h-6 w-6 p-0 text-slate-400 hover:text-red-400"
+                      >
+                        <Undo2 className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })}
+              {league.all_picks.length === 0 && (
+                <div className="text-slate-500 text-sm italic">No picks yet</div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  };
 
   const TeamMemberControls = () => {
     const currentTeam = getCurrentUserTeam();
