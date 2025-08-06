@@ -234,6 +234,22 @@ const AuctionTracker = () => {
     }, 0);
   }, []);
 
+  // Phone number update handler with same cursor fix pattern
+  const updateTeamPhoneNumber = useCallback((teamId, phoneNumber) => {
+    setTeamPhoneNumbers(prev => ({
+      ...prev,
+      [teamId]: phoneNumber
+    }));
+    
+    // Apply the SAME cursor fix pattern
+    setTimeout(() => {
+      const inputRef = teamPhoneRefs.current[teamId];
+      if (inputRef && document.activeElement !== inputRef) {
+        inputRef.focus();
+      }
+    }, 0);
+  }, []);
+
   // Memoized bid amount handler
   const handleBidAmountChange = useCallback((value) => {
     setBidAmount(value);
