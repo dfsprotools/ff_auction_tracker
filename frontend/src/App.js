@@ -1254,6 +1254,78 @@ const AuctionTracker = () => {
             </div>
           </CardContent>
         </Card>
+
+        {/* Team-Restricted Draft Controls */}
+        <Card className="bg-white/10 backdrop-blur-md border-white/20">
+          <CardHeader>
+            <CardTitle className="text-white text-lg">Submit Draft Pick</CardTitle>
+            <div className="text-slate-400 text-sm">Request a player for your team</div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="relative">
+              <Input
+                ref={searchInputRef}
+                placeholder="Search players..."
+                value={searchQuery}
+                onChange={(e) => handleSearchQueryChange(e.target.value)}
+                className="bg-slate-700 border-slate-600 text-white pr-10"
+              />
+              <Search className="absolute right-3 top-3 h-4 w-4 text-slate-400" />
+            </div>
+            
+            {searchResults.length > 0 && searchQuery && (
+              <div className="max-h-32 overflow-y-auto space-y-2">
+                {searchResults.slice(0, 5).map((player, index) => (
+                  <div
+                    key={index}
+                    onClick={() => {
+                      setSearchQuery(player.name);
+                      setSearchResults([player]); // Set exactly one player for draft button
+                    }}
+                    className="p-2 bg-slate-700 rounded cursor-pointer hover:bg-slate-600 transition-colors"
+                  >
+                    <div className="text-white text-sm font-medium">
+                      {player.name} ({player.position}, {player.nfl_team})
+                    </div>
+                    <div className="text-slate-400 text-xs">
+                      ETR #{player.etr_rank} • {player.pos_rank}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <Input
+              ref={bidInputRef}
+              type="number"
+              placeholder="Bid amount"
+              value={bidAmount}
+              onChange={(e) => handleBidAmountChange(e.target.value)}
+              className="bg-slate-700 border-slate-600 text-white"
+              min="1"
+              step="1"
+              inputMode="numeric"
+              autoComplete="off"
+            />
+
+            {searchResults.length === 1 && bidAmount && parseInt(bidAmount) > 0 && (
+              <Button
+                onClick={() => addDraftPick(searchResults[0])}
+                className="w-full bg-blue-600 hover:bg-blue-700"
+                disabled={currentTeam.remaining < parseInt(bidAmount)}
+              >
+                Request {searchResults[0].name} for ${bidAmount}
+                {currentTeam.remaining < parseInt(bidAmount) && (
+                  <span className="text-red-300 ml-2">(Insufficient Budget)</span>
+                )}
+              </Button>
+            )}
+            
+            <div className="text-xs text-slate-400">
+              Note: Team members can only draft to their own team
+            </div>
+          </CardContent>
+        </Card>
       </div>
     );
   };
