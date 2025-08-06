@@ -213,7 +213,7 @@ const AuctionTracker = () => {
     }
   };
 
-  // Memoized team name update to prevent re-renders
+  // Memoized team name update to prevent re-renders - WITH CURSOR FIX
   const updateTeamName = useCallback((teamId, newName) => {
     setLeague(prevLeague => ({
       ...prevLeague,
@@ -221,6 +221,14 @@ const AuctionTracker = () => {
         team.id === teamId ? { ...team, name: newName } : team
       )
     }));
+    
+    // Maintain focus on team name input
+    setTimeout(() => {
+      const inputRef = teamNameRefs.current[teamId];
+      if (inputRef && document.activeElement !== inputRef) {
+        inputRef.focus();
+      }
+    }, 0);
   }, []);
 
   // Memoized bid amount handler
