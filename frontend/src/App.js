@@ -75,6 +75,39 @@ const AuctionTracker = () => {
     loadPlayerDatabase();
   }, []);
 
+  // Generate unique URLs for team invitations
+  const generateTeamInviteUrls = useCallback(() => {
+    const newUrls = {};
+    league.teams.forEach(team => {
+      // Generate a unique 12-character code for each team
+      const uniqueCode = Math.random().toString(36).substring(2, 14);
+      newUrls[team.id] = `/team/${uniqueCode}`;
+    });
+    setTeamInviteUrls(newUrls);
+    return newUrls;
+  }, [league]);
+
+  // Generate invite messages for manual SMS sending
+  const generateInviteMessages = useCallback(() => {
+    const urls = Object.keys(teamInviteUrls).length > 0 ? teamInviteUrls : generateTeamInviteUrls();
+    const messages = [];
+    
+    league.teams.forEach(team => {
+      const teamName = team.name || `Team ${league.teams.indexOf(team) + 1}`;
+      const phoneNumber = teamPhoneNumbers[team.id] || 'No phone number';
+      const uniqueUrl = `${window.location.origin}${urls[team.id]}`;
+      
+      messages.push({
+        teamId: team.id,
+        teamName,
+        phoneNumber,
+        message: `Join ${league.name} as ${teamName}: ${uniqueUrl}`
+      });
+    });
+    
+    return messages;
+  }, [league, teamPhoneNumbers, teamInviteUrls, generateTeamInviteUrls]);
+
   const loadPlayerDatabase = async () => {
     try {
       // Load ALL players from CSV (increase limit significantly)
