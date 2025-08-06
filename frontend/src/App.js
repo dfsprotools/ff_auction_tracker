@@ -61,6 +61,7 @@ const AuctionTracker = () => {
   // Add these refs to your existing state declarations
   const searchInputRef = useRef(null);
   const bidInputRef = useRef(null);
+  const teamNameRefs = useRef({});
 
   // Simple authentication - in production this would be more secure
   const COMMISSIONER_PASSWORD = 'draft2024';
