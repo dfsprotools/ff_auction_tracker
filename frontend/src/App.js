@@ -1905,6 +1905,9 @@ const AuctionTracker = () => {
       {/* SMS Messages Dialog */}
       <SMSMessagesDialog />
       
+      {/* Value Validation Debug */}
+      <ValueValidationDebug />
+      
       {/* View Toggle */}
       <div className="mb-6">
         <Tabs value={activeView} onValueChange={setActiveView} className="w-fit">
