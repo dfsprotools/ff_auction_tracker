@@ -1693,6 +1693,9 @@ const AuctionTracker = () => {
       {/* League Settings Dialog */}
       <LeagueSettingsDialog />
       
+      {/* SMS Messages Dialog */}
+      <SMSMessagesDialog />
+      
       {/* View Toggle */}
       <div className="mb-6">
         <Tabs value={activeView} onValueChange={setActiveView} className="w-fit">
