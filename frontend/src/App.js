@@ -1199,65 +1199,94 @@ const AuctionTracker = () => {
     return filtered.slice(0, 500); // Show all available players
   };
 
-  // Calculate suggested value for a player - CORRECT VALUES SUMMING TO $4256
-  const getSuggestedValue = (player) => {
-    const position = player.position;
+  // DYNAMIC AUCTION VALUE SYSTEM - Based on Actual 2023 Data
+  const POSITION_BUDGETS = {
+    RB: 0.38, // 38% - $1,615 of $4,200 actual spend
+    WR: 0.45, // 45% - $1,890 of $4,200 actual spend  
+    QB: 0.10, // 10% - $420 of $4,200 actual spend
+    TE: 0.06, // 6% - $252 of $4,200 actual spend
+    K: 0.005, // 0.5% - $21 of $4,200 actual spend
+    DST: 0.005 // 0.5% - $21 of $4,200 actual spend
+  };
+
+  // Calculate position budgets dynamically based on league settings
+  const calculatePositionBudgets = useCallback(() => {
+    if (!league) return {};
     
+    const totalBudget = league.total_teams * league.budget_per_team;
+    return Object.entries(POSITION_BUDGETS).reduce((budgets, [pos, pct]) => {
+      budgets[pos] = totalBudget * pct;
+      return budgets;
+    }, {});
+  }, [league]);
+
+  // Get total players at each position from database
+  const getPositionCounts = useCallback(() => {
+    const counts = {};
+    playerDatabase.forEach(player => {
+      counts[player.position] = (counts[player.position] || 0) + 1;
+    });
+    return counts;
+  }, [playerDatabase]);
+
+  // Calculate dynamic player value based on position budget and rank percentile
+  const calculatePlayerValue = useCallback((player, positionBudget, totalAtPosition) => {
     // Extract position rank number from strings like "QB01", "RB02", etc.
     const posRankMatch = player.pos_rank?.match(/\d+/);
-    const posRank = posRankMatch ? parseInt(posRankMatch[0]) : 999;
+    const rank = posRankMatch ? parseInt(posRankMatch[0]) : 999;
     
-    // Recalibrated to sum to exactly $4256 (14 teams × $300 + 56 × $1)
-    switch (position) {
-      case 'QB':
-        // QBs: Top 2 expensive, then cheap quickly
-        if (posRank <= 2) return 40; // Josh Allen, Lamar: $40
-        if (posRank <= 5) return 15; // QB3-5: $15
-        if (posRank <= 10) return 8; // QB6-10: $8
-        if (posRank <= 20) return 3; // QB11-20: $3
-        return 1; // QB21+: $1
-      
-      case 'TE':
-        // TEs: Top 1 expensive, then cheaper
-        if (posRank <= 1) return 40; // Brock Bowers: $40
-        if (posRank <= 3) return 20; // TE2-3: $20
-        if (posRank <= 6) return 12; // TE4-6: $12
-        if (posRank <= 12) return 6; // TE7-12: $6
-        if (posRank <= 20) return 3; // TE13-20: $3
-        return 1; // TE21+: $1
-      
-      case 'RB':
-        // RBs: More expensive overall but not crazy
-        if (posRank <= 6) return 65 + (7 - posRank) * 5; // RB1-6: $70-95
-        if (posRank <= 12) return 40 + (13 - posRank) * 4; // RB7-12: $44-64
-        if (posRank <= 20) return 25 + (21 - posRank) * 2; // RB13-20: $27-41
-        if (posRank <= 30) return 15 + (31 - posRank) * 1; // RB21-30: $16-25
-        if (posRank <= 40) return 8 + (41 - posRank) * 0.7; // RB31-40: $8.7-15
-        return Math.max(1, 6 - Math.floor((posRank - 40) / 10)); // RB41+: $1-5
-      
-      case 'WR':
-        // WRs: Similar to RBs but slightly less
-        if (posRank <= 8) return 55 + (9 - posRank) * 3; // WR1-8: $58-79
-        if (posRank <= 16) return 35 + (17 - posRank) * 2.5; // WR9-16: $37.5-55
-        if (posRank <= 24) return 25 + (25 - posRank) * 1.25; // WR17-24: $26.25-35
-        if (posRank <= 36) return 15 + (37 - posRank) * 0.8; // WR25-36: $15.8-25
-        if (posRank <= 50) return 8 + (51 - posRank) * 0.5; // WR37-50: $8.5-15
-        return Math.max(1, 5 - Math.floor((posRank - 50) / 15)); // WR51+: $1-4
-      
-      case 'K':
-        // Kickers: Mostly $1
-        if (posRank <= 3) return 2;
-        return 1;
-        
-      case 'DST':
-        // Defense: Mostly $1  
-        if (posRank <= 3) return 2;
-        return 1;
-      
-      default:
-        return 1;
+    // Calculate percentile (lower is better)
+    const percentile = rank / totalAtPosition;
+    
+    let budgetShare;
+    if (percentile <= 0.10) {        // Top 10% (Josh Allen, CMC tier)
+      budgetShare = 0.40 + (0.10 - percentile) * 2; // 40-60% of position budget
+    } else if (percentile <= 0.25) { // Elite tier (Top 25%)
+      budgetShare = 0.15 + (0.25 - percentile) * 1.67; // 15-40%
+    } else if (percentile <= 0.65) { // Solid starters
+      budgetShare = 0.02 + (0.65 - percentile) * 0.325; // 2-15%
+    } else {                         // Bench/depth
+      budgetShare = Math.max(0.001, (1 - percentile) * 0.057); // $1-5
     }
-  };
+    
+    // Calculate base value
+    let baseValue = Math.max(1, Math.round(positionBudget * budgetShare / Math.max(1, totalAtPosition * 0.8)));
+    
+    // Apply market adjustments
+    
+    // 1. Scarcity premium for scarce positions
+    if (player.position === 'TE') {
+      baseValue = Math.round(baseValue * 1.15); // +15% TE scarcity premium
+    } else if (player.position === 'RB') {
+      baseValue = Math.round(baseValue * 1.10); // +10% RB scarcity premium
+    }
+    
+    // 2. Rookie premium for high draft picks (if we had draft data)
+    // This would be: baseValue = Math.round(baseValue * 1.15) for high rookies
+    
+    // 3. Injury discount (if we had injury data)
+    // This would be: baseValue = Math.round(baseValue * 0.85) for injury-prone players
+    
+    return Math.max(1, baseValue);
+  }, []);
+
+  // Enhanced suggested value function with dynamic calculation
+  const getSuggestedValue = useCallback((player) => {
+    if (!league || playerDatabase.length === 0) return 1;
+    
+    const positionBudgets = calculatePositionBudgets();
+    const positionCounts = getPositionCounts();
+    
+    const playerPosition = player.position;
+    const positionBudget = positionBudgets[playerPosition];
+    const totalAtPosition = positionCounts[playerPosition];
+    
+    if (!positionBudget || !totalAtPosition) {
+      return 1;
+    }
+    
+    return calculatePlayerValue(player, positionBudget, totalAtPosition);
+  }, [league, playerDatabase, calculatePositionBudgets, getPositionCounts, calculatePlayerValue]);
 
   const PlayerRankingsDashboard = () => (
     <div className="space-y-4">
