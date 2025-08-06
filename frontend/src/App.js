@@ -54,9 +54,11 @@ const AuctionTracker = () => {
   const [commissionerPassword, setCommissionerPassword] = useState('');
   const [showPasswordPrompt, setShowPasswordPrompt] = useState(false);
   
-  // NEW TEAM CLAIMING SYSTEM
+  // NEW TEAM CLAIMING SYSTEM + SMS INVITATION SYSTEM
   const [claimedTeams, setClaimedTeams] = useState(new Set()); // Track claimed teams
   const [commissionerTeamsNamed, setCommissionerTeamsNamed] = useState(false); // Track if commissioner has named teams
+  const [teamPhoneNumbers, setTeamPhoneNumbers] = useState({}); // Track phone numbers for each team
+  const [teamInviteUrls, setTeamInviteUrls] = useState({}); // Track unique URLs for each team
 
   // Add these refs to your existing state declarations
   const searchInputRef = useRef(null);
