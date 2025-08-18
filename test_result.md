@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "The TE and DST are missing from the Positions Needed on the /display page."
+user_problem_statement: "From the preview, when I click export all picks after making a pick, I see that the message states 'Draft results exported: 1 pick' but I don't see the export."
 
 backend:
   - task: "Verify TE and DEF position support in backend APIs"
