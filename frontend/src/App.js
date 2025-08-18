@@ -179,6 +179,7 @@ const AuctionTracker = () => {
     if (value.trim()) {
       const filteredResults = getFilteredDraftPlayers(value);
       setSearchResults(filteredResults);
+      console.log('Search results:', filteredResults); // Debug log
     } else {
       setSearchResults([]);
     }
