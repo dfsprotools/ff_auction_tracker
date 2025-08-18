@@ -936,14 +936,19 @@ const AuctionTracker = () => {
           const response = await axios.get(`${API}/leagues/${league.id}`);
           const updatedLeague = response.data;
           
-          // Only update if there are actual changes (more picks)
+          // Always update the league data for real-time sync
           const currentPickCount = league?.all_picks?.length || 0;
           const newPickCount = updatedLeague?.all_picks?.length || 0;
           
-          if (newPickCount > currentPickCount) {
+          if (JSON.stringify(updatedLeague) !== JSON.stringify(league)) {
             setLeague(updatedLeague);
             setLastUpdateTime(new Date());
-            console.log(`🔄 Display updated: ${newPickCount - currentPickCount} new picks`);
+            
+            if (newPickCount > currentPickCount) {
+              console.log(`🔄 Display updated: ${newPickCount - currentPickCount} new picks`);
+            } else {
+              console.log(`🔄 Display refreshed: synced latest data`);
+            }
           }
         } catch (error) {
           console.error('Error polling for updates:', error);
