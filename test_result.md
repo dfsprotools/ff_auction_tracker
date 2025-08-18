@@ -123,11 +123,11 @@ backend:
 frontend:
   - task: "Fix missing TE and DEF positions in DisplayInterface positions needed section"
     implemented: true
-    working: false
+    working: true
     file: "/app/frontend/src/App.js"
     stuck_count: 1
     priority: "high"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
         - working: false
           agent: "main"
