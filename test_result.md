@@ -121,29 +121,17 @@ backend:
           comment: "✅ All backend tests PASSED (15/15). Key findings: 1) Demo league correctly includes TE and DEF in position_requirements, 2) TE player search returns valid TE players including known players like Travis Kelce, 3) DEF position search works (CSV data uses 'DST' format but backend handles both DEF and DST searches), 4) All core API endpoints functioning correctly. Backend is providing correct data for TE and DEF positions."
 
 frontend:
-  - task: "Fix missing TE and DEF positions in DisplayInterface positions needed section"
-    implemented: true
-    working: true
+  - task: "Fix CSV export functionality - file download not working"
+    implemented: false
+    working: false
     file: "/app/frontend/src/App.js"
-    stuck_count: 1
+    stuck_count: 0
     priority: "high"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
         - working: false
           agent: "main"
-          comment: "User reported TE and DST positions are missing from Positions Needed on /display page. Found issue at line ~1249 where positionsNeeded.slice(0, 6) limits display to 6 positions, but with QB(1) + RB(2) + WR(3) + TE(1) + FLEX(1) + DEF(1) = 9 total position slots, the TE and DEF positions get cut off."
-        - working: true
-          agent: "main"
-          comment: "Fixed the issue by removing the .slice(0, 6) limitation in DisplayInterface line 1249, allowing all positions needed to be displayed including TE and DEF. The fix has been implemented and services restarted successfully."
-        - working: false
-          agent: "testing"
-          comment: "COMPREHENSIVE TESTING RESULTS: ✅ TE positions are now VISIBLE (14/14 teams show TE) - the slice fix is working for TE! ❌ DEF positions are still MISSING (0/14 teams show DEF) despite being configured in league settings (DEF: 1). Issue: League settings show DEF: 1 is configured, but calculatePositionsNeeded function may not be processing DEF positions correctly. The .slice() fix resolved TE visibility but DEF positions are still not appearing in POSITIONS NEEDED sections."
-        - working: true
-          agent: "main"
-          comment: "Fixed the remaining DEF position issue! Found that calculatePositionsNeeded function had another .slice(0, 8) limitation at line 436. With QB(1) + RB(2) + WR(3) + TE(1) + FLEX(1) + DEF(1) = 9 positions total, the DEF position was being cut off by .slice(0, 8). Removed this limitation completely so all positions including DEF are now displayed."
-        - working: true
-          agent: "testing"
-          comment: "✅ FINAL VERIFICATION SUCCESSFUL! Comprehensive testing on /display page confirms: TE positions: 14/14 teams showing TE correctly, DEF positions: 14/14 teams showing DEF correctly. All expected positions visible: QB, RB(2), WR(3), TE, FLEX, DEF + BENCH spots. Both .slice() fixes (DisplayInterface line 1249 and calculatePositionsNeeded function) are working perfectly. User's reported issue is completely resolved."
+          comment: "User reported that CSV export shows success message 'Draft results exported: 1 pick' but actual file download doesn't happen. Need to investigate the exportDraftResults and exportTeamRosters functions to fix the file download mechanism."
 
 metadata:
   created_by: "main_agent" 
