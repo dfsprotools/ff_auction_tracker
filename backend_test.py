@@ -220,8 +220,11 @@ class FantasyFootballAPITester:
         return self.log_test("Player Search - DEF Position", False, f"Error: {response}")
 
     def test_get_demo_league_endpoint(self):
-        """Test GET /api/demo-league endpoint specifically"""
-        success, response = self.make_request('GET', '/demo-league')
+        """Test that demo league can be retrieved after creation"""
+        if not self.league_id:
+            return self.log_test("GET Demo League Endpoint", False, "No league ID available")
+        
+        success, response = self.make_request('GET', f'/leagues/{self.league_id}')
         
         if success:
             # Verify it returns the demo league with correct structure
@@ -245,7 +248,10 @@ class FantasyFootballAPITester:
 
     def test_demo_league_position_requirements(self):
         """Test that demo league has correct position requirements including TE and DEF"""
-        success, response = self.make_request('GET', '/demo-league')
+        if not self.league_id:
+            return self.log_test("Demo League Position Requirements", False, "No league ID available")
+        
+        success, response = self.make_request('GET', f'/leagues/{self.league_id}')
         
         if success:
             position_requirements = response.get('position_requirements', {})
