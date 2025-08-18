@@ -731,26 +731,29 @@ const AuctionTracker = () => {
     );
   };
 
-  // Control Interface (Commissioner View)
+  // Control Interface - DRAFT HQ (Commissioner Laptop Interface)
   const ControlInterface = () => (
     <div className="grid grid-cols-5 gap-6 h-screen p-4">
+      {/* Left Side: Player Rankings Dashboard (60%) */}
       <div className="col-span-3 bg-white/5 backdrop-blur-md rounded-lg p-4 border border-white/20">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-bold text-white">Player Rankings</h2>
-          <div className="text-slate-400 text-sm">Commissioner Control Panel</div>
+          <h2 className="text-xl font-bold text-white">📊 Player Rankings</h2>
+          <div className="text-slate-400 text-sm">🏈 DRAFT HQ - Commissioner Control</div>
         </div>
         <PlayerRankingsDashboard />
       </div>
 
+      {/* Right Side: Commissioner Controls (40%) */}
       <div className="col-span-2 space-y-4">
         
+        {/* League Header */}
         <Card className="bg-white/10 backdrop-blur-md border-white/20">
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle className="text-white text-lg">{league?.name || 'Loading...'}</CardTitle>
+                <CardTitle className="text-white text-lg">🏆 {league?.name || 'Loading...'}</CardTitle>
                 <div className="text-slate-300 text-sm">
-                  {league?.total_teams} Teams • ${league?.budget_per_team} Budget
+                  {league?.total_teams} Teams • ${league?.budget_per_team} Budget • Picks: {league?.all_picks?.length || 0}
                 </div>
               </div>
               <Button 
@@ -765,9 +768,10 @@ const AuctionTracker = () => {
           </CardHeader>
         </Card>
 
+        {/* Draft Entry Form */}
         <Card className="bg-white/10 backdrop-blur-md border-white/20">
           <CardHeader>
-            <CardTitle className="text-white text-lg">Draft Player</CardTitle>
+            <CardTitle className="text-white text-lg">⚡ Draft Player</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="relative">
@@ -797,7 +801,7 @@ const AuctionTracker = () => {
                       {player.name} ({player.position}, {player.nfl_team})
                     </div>
                     <div className="text-slate-400 text-xs">
-                      ETR #{player.etr_rank} • {player.pos_rank}
+                      ETR #{player.etr_rank} • {player.pos_rank} • Auction Value: ${getAuctionValue(player)}
                     </div>
                   </div>
                 ))}
@@ -855,9 +859,10 @@ const AuctionTracker = () => {
           </CardContent>
         </Card>
 
+        {/* Recent Picks */}
         <Card className="bg-white/10 backdrop-blur-md border-white/20">
           <CardHeader>
-            <CardTitle className="text-white text-lg">Recent Picks</CardTitle>
+            <CardTitle className="text-white text-lg">🔄 Recent Picks</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-2 max-h-48 overflow-y-auto">
@@ -888,6 +893,24 @@ const AuctionTracker = () => {
               {(!league?.all_picks || league.all_picks.length === 0) && (
                 <div className="text-slate-500 text-sm italic">No picks yet</div>
               )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Quick Stats */}
+        <Card className="bg-white/10 backdrop-blur-md border-white/20">
+          <CardContent className="pt-4">
+            <div className="grid grid-cols-2 gap-4 text-center">
+              <div>
+                <div className="text-2xl font-bold text-emerald-400">{league?.all_picks?.length || 0}</div>
+                <div className="text-xs text-slate-400">Total Picks</div>
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-yellow-400">
+                  {league?.teams?.reduce((sum, team) => sum + team.remaining_spots, 0) || 0}
+                </div>
+                <div className="text-xs text-slate-400">Open Spots</div>
+              </div>
             </div>
           </CardContent>
         </Card>
