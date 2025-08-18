@@ -252,6 +252,120 @@ const AuctionTracker = () => {
     }
   };
 
+  // CSV Export functionality
+  const exportDraftResults = () => {
+    if (!league || !league.all_picks || league.all_picks.length === 0) {
+      toast.error('No draft picks to export');
+      return;
+    }
+
+    // Create CSV data - one row per pick
+    const csvData = [];
+    csvData.push(['Team Name', 'Player Name', 'Position', 'NFL Team', 'Draft Cost', 'Pick Number', 'ETR Rank']);
+
+    // Sort picks by timestamp to maintain draft order
+    const sortedPicks = [...league.all_picks].sort((a, b) => 
+      new Date(a.timestamp) - new Date(b.timestamp)
+    );
+
+    sortedPicks.forEach((pick, index) => {
+      const team = league.teams.find(t => t.id === pick.team_id);
+      csvData.push([
+        team?.name || 'Unknown Team',
+        pick.player.name,
+        pick.player.position,
+        pick.player.nfl_team,
+        `$${pick.amount}`,
+        index + 1,
+        pick.player.etr_rank || 'N/A'
+      ]);
+    });
+
+    // Convert to CSV string
+    const csvContent = csvData.map(row => 
+      row.map(field => `"${field}"`).join(',')
+    ).join('\n');
+
+    // Create and download file
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    if (link.download !== undefined) {
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', `${league.name}_draft_results.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    toast.success(`Draft results exported: ${league.all_picks.length} picks`);
+  };
+
+  // Export team rosters (alternative format - one row per team with all players)
+  const exportTeamRosters = () => {
+    if (!league || !league.teams) {
+      toast.error('No teams to export');
+      return;
+    }
+
+    // Create CSV with team roster format
+    const csvData = [];
+    const maxRosterSize = Math.max(...league.teams.map(t => t.roster.length));
+    
+    // Header row
+    const headers = ['Team Name', 'Total Spent', 'Remaining Budget'];
+    for (let i = 1; i <= Math.max(16, maxRosterSize); i++) {
+      headers.push(`Player ${i}`, `Position ${i}`, `Cost ${i}`);
+    }
+    csvData.push(headers);
+
+    // Team rows
+    league.teams.forEach(team => {
+      const row = [
+        team.name,
+        `$${team.spent}`,
+        `$${team.remaining}`
+      ];
+
+      // Add players (sorted by draft order)
+      const sortedRoster = [...team.roster].sort((a, b) => 
+        new Date(a.timestamp) - new Date(b.timestamp)
+      );
+
+      for (let i = 0; i < Math.max(16, maxRosterSize); i++) {
+        if (i < sortedRoster.length) {
+          const pick = sortedRoster[i];
+          row.push(pick.player.name, pick.player.position, `$${pick.amount}`);
+        } else {
+          row.push('', '', '');
+        }
+      }
+
+      csvData.push(row);
+    });
+
+    // Convert to CSV string
+    const csvContent = csvData.map(row => 
+      row.map(field => `"${field}"`).join(',')
+    ).join('\n');
+
+    // Create and download file
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    if (link.download !== undefined) {
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', `${league.name}_team_rosters.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    toast.success(`Team rosters exported: ${league.teams.length} teams`);
+  };
+
   // Helper function to get max bid color class
   const getMaxBidColorClass = (maxBid) => {
     if (maxBid > 50) return 'text-emerald-400 font-bold';
