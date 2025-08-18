@@ -648,7 +648,7 @@ const AuctionTracker = () => {
     return (
       <div className="space-y-4">
         <div className="flex flex-wrap gap-2">
-          {['ALL', 'QB', 'RB', 'WR', 'TE', 'K', 'DST'].map(position => (
+          {['ALL', 'QB', 'RB', 'WR', 'TE', 'DST'].map(position => (
             <button
               key={position}
               onClick={() => setActivePosition(position)}
