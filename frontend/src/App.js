@@ -921,16 +921,70 @@ const AuctionTracker = () => {
   // Display Interface - AUCTION TRACKER (Extended Monitor/HDMI Display)
   const DisplayInterface = () => {
     console.log('DisplayInterface rendering...');
+    const [lastUpdateTime, setLastUpdateTime] = useState(new Date());
+    const [isUpdating, setIsUpdating] = useState(false);
+
+    // Real-time sync: Poll for updates every 3 seconds on display interface
+    useEffect(() => {
+      let pollInterval;
+      
+      const pollForUpdates = async () => {
+        if (!league?.id) return;
+        
+        try {
+          setIsUpdating(true);
+          const response = await axios.get(`${API}/leagues/${league.id}`);
+          const updatedLeague = response.data;
+          
+          // Only update if there are actual changes (more picks)
+          const currentPickCount = league?.all_picks?.length || 0;
+          const newPickCount = updatedLeague?.all_picks?.length || 0;
+          
+          if (newPickCount > currentPickCount) {
+            setLeague(updatedLeague);
+            setLastUpdateTime(new Date());
+            console.log(`🔄 Display updated: ${newPickCount - currentPickCount} new picks`);
+          }
+        } catch (error) {
+          console.error('Error polling for updates:', error);
+        } finally {
+          setIsUpdating(false);
+        }
+      };
+
+      // Start polling every 3 seconds
+      pollInterval = setInterval(pollForUpdates, 3000);
+      
+      // Initial poll
+      pollForUpdates();
+
+      // Cleanup on unmount
+      return () => {
+        if (pollInterval) clearInterval(pollInterval);
+      };
+    }, [league?.id, league?.all_picks?.length]);
+
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4">
         {/* Auction Tracker Header */}
         <div className="text-center mb-6">
-          <h1 className="text-5xl font-bold text-white mb-2">🏈 AUCTION TRACKER</h1>
+          <div className="flex items-center justify-center space-x-4 mb-2">
+            <h1 className="text-5xl font-bold text-white">🏈 AUCTION TRACKER</h1>
+            {isUpdating && (
+              <div className="flex items-center space-x-2 text-emerald-400">
+                <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
+                <span className="text-sm">Syncing...</span>
+              </div>
+            )}
+          </div>
           <div className="text-2xl text-slate-300 mb-4">
             {league?.name || 'Fantasy Football Auction'} • Live Draft Board
           </div>
-          <div className="text-xl text-slate-400">
+          <div className="text-xl text-slate-400 mb-2">
             {league?.total_teams} Teams • ${league?.budget_per_team} Budget • {league?.roster_size} Roster Spots • Draft Picks: {league?.all_picks?.length || 0}
+          </div>
+          <div className="text-sm text-slate-500">
+            Last Updated: {lastUpdateTime.toLocaleTimeString()} • Auto-refreshing every 3 seconds
           </div>
         </div>
 
@@ -1027,7 +1081,7 @@ const AuctionTracker = () => {
 
         {/* Recent Draft Activity - Full Width */}
         {league?.all_picks && league.all_picks.length > 0 && (
-          <div className="bg-white/5 backdrop-blur-md border border-white/20 rounded-lg p-6">
+          <div className="bg-white/5 backdrop-blur-md border border-white/20 rounded-lg p-6 mb-6">
             <h2 className="text-2xl font-bold text-white mb-4 text-center">📋 RECENT DRAFT ACTIVITY</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
               {league.all_picks.slice(-12).reverse().map((pick, index) => {
@@ -1055,7 +1109,7 @@ const AuctionTracker = () => {
         )}
 
         {/* Draft Summary Stats */}
-        <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-lg p-4 text-center">
             <div className="text-3xl font-bold text-emerald-400">{league?.all_picks?.length || 0}</div>
             <div className="text-slate-300 text-sm">Total Picks</div>
