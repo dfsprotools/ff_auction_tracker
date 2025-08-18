@@ -40,7 +40,6 @@ const AuctionTracker = () => {
       WR: 2,
       TE: 1,
       FLEX: 1,
-      K: 1,
       DEF: 1
     }
   });
