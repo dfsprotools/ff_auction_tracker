@@ -180,6 +180,45 @@ class FantasyFootballAPITester:
         
         return self.log_test("Player Search - QB Position", False, f"Error: {response}")
 
+    def test_te_position_search(self):
+        """Test TE position search - Critical for user issue"""
+        success, response = self.make_request('GET', '/players/search', params={'position': 'TE', 'limit': 10})
+        
+        if success and isinstance(response, list):
+            all_tes = all(p.get('position') == 'TE' for p in response)
+            te_players_found = len(response) > 0
+            
+            # Look for known TE players
+            known_tes = ['travis kelce', 'mark andrews', 'george kittle', 'tj hockenson']
+            known_te_found = any(
+                any(known_te in p.get('name', '').lower() for known_te in known_tes)
+                for p in response
+            )
+            
+            return self.log_test(
+                "Player Search - TE Position", 
+                te_players_found and all_tes,
+                f"Found {len(response)} TEs, all are TEs: {all_tes}, known TE found: {known_te_found}"
+            )
+        
+        return self.log_test("Player Search - TE Position", False, f"Error: {response}")
+
+    def test_def_position_search(self):
+        """Test DEF position search - Critical for user issue"""
+        success, response = self.make_request('GET', '/players/search', params={'position': 'DEF', 'limit': 10})
+        
+        if success and isinstance(response, list):
+            all_defs = all(p.get('position') == 'DEF' for p in response)
+            def_players_found = len(response) > 0
+            
+            return self.log_test(
+                "Player Search - DEF Position", 
+                def_players_found and all_defs,
+                f"Found {len(response)} DEF players, all are DEF: {all_defs}"
+            )
+        
+        return self.log_test("Player Search - DEF Position", False, f"Error: {response}")
+
     def test_draft_player(self):
         """Test drafting a player"""
         if not self.league_id or not self.team_ids:
