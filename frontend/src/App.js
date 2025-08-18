@@ -55,6 +55,13 @@ const AuctionTracker = () => {
     loadPlayerDatabase();
   }, []);
 
+  // Store current league ID in localStorage for cross-tab sync
+  useEffect(() => {
+    if (league?.id) {
+      localStorage.setItem('current_league_id', league.id);
+    }
+  }, [league?.id]);
+
   const loadPlayerDatabase = async () => {
     try {
       const response = await axios.get(`${API}/players/search`, {
