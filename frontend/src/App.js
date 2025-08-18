@@ -586,7 +586,9 @@ const AuctionTracker = () => {
             <div>
               <Label className="text-slate-300 text-base font-medium">Starting Lineup Requirements</Label>
               <div className="grid grid-cols-2 gap-3 mt-2">
-                {Object.entries(localLeagueSettings.position_requirements).map(([position, value]) => (
+                {Object.entries(localLeagueSettings.position_requirements)
+                  .filter(([position]) => position !== 'K') // Exclude Kickers completely
+                  .map(([position, value]) => (
                   <div key={position} className="flex items-center justify-between bg-slate-700 rounded p-2">
                     <span className="text-slate-300">{position}:</span>
                     <Select 
