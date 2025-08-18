@@ -1073,23 +1073,31 @@ const AuctionTracker = () => {
         try {
           setIsUpdating(true);
           
-          // Get the latest league (always fetch the most recent one)
-          const leaguesResponse = await axios.get(`${API}/leagues`);
-          const latestLeague = leaguesResponse.data[0]; // Get the first/latest league
+          // Use the same league loading logic as the main app
+          if (!league?.id) {
+            // If no league loaded, load demo league like control interface does
+            const response = await axios.post(`${API}/demo-league`);
+            setLeague(response.data);
+            setLastUpdateTime(new Date());
+            console.log('🔄 Display loaded demo league');
+            return;
+          }
           
-          if (!latestLeague) return;
+          // Poll the specific league that control is using
+          const response = await axios.get(`${API}/leagues/${league.id}`);
+          const updatedLeague = response.data;
           
-          // Always update to ensure we have the latest data
+          // Always update to ensure latest data
           const currentPickCount = league?.all_picks?.length || 0;
-          const newPickCount = latestLeague?.all_picks?.length || 0;
+          const newPickCount = updatedLeague?.all_picks?.length || 0;
           
           // Update league data
-          setLeague(latestLeague);
+          setLeague(updatedLeague);
           setLastUpdateTime(new Date());
           
           if (newPickCount > currentPickCount) {
             console.log(`🔄 Display updated: ${newPickCount - currentPickCount} new picks`);
-          } else if (newPickCount !== currentPickCount) {
+          } else if (JSON.stringify(updatedLeague) !== JSON.stringify(league)) {
             console.log(`🔄 Display refreshed: synced latest data (${newPickCount} picks)`);
           }
         } catch (error) {
@@ -1109,7 +1117,7 @@ const AuctionTracker = () => {
       return () => {
         if (pollInterval) clearInterval(pollInterval);
       };
-    }, []); // Remove dependencies to ensure it always runs
+    }, [league?.id]); // Depend on league.id to restart polling when league changes
 
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4">
