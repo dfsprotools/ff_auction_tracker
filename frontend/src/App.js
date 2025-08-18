@@ -1209,7 +1209,7 @@ const AuctionTracker = () => {
     DST: 0.005 // 0.5% - $21 of $4,200 actual spend
   };
 
-  // Enhanced suggested value function with dynamic calculation
+  // Enhanced suggested value function with CORRECTED dynamic calculation
   const getSuggestedValue = (player) => {
     if (!league || !playerDatabase || playerDatabase.length === 0) return 1;
     
@@ -1238,36 +1238,57 @@ const AuctionTracker = () => {
     const posRankMatch = player.pos_rank?.match(/\d+/);
     const rank = posRankMatch ? parseInt(posRankMatch[0]) : 999;
     
-    // Calculate percentile (lower is better)
-    const percentile = rank / totalAtPosition;
-    
-    let budgetShare;
-    if (percentile <= 0.10) {        // Top 10% (Josh Allen, CMC tier)
-      budgetShare = 0.40 + (0.10 - percentile) * 2; // 40-60% of position budget
-    } else if (percentile <= 0.25) { // Elite tier (Top 25%)
-      budgetShare = 0.15 + (0.25 - percentile) * 1.67; // 15-40%
-    } else if (percentile <= 0.65) { // Solid starters
-      budgetShare = 0.02 + (0.65 - percentile) * 0.325; // 2-15%
-    } else {                         // Bench/depth
-      budgetShare = Math.max(0.001, (1 - percentile) * 0.057); // $1-5
+    // CORRECTED: Calculate how many players of this position will actually be drafted
+    let expectedDrafted;
+    switch (playerPosition) {
+      case 'QB':
+        expectedDrafted = league.total_teams * 1.5; // ~1.5 QBs per team
+        break;
+      case 'RB':
+        expectedDrafted = league.total_teams * 2.8; // ~2.8 RBs per team  
+        break;
+      case 'WR':
+        expectedDrafted = league.total_teams * 3.2; // ~3.2 WRs per team
+        break;
+      case 'TE':
+        expectedDrafted = league.total_teams * 1.4; // ~1.4 TEs per team
+        break;
+      case 'K':
+      case 'DST':
+        expectedDrafted = league.total_teams * 1.1; // ~1.1 K/DST per team
+        break;
+      default:
+        expectedDrafted = league.total_teams * 2;
     }
     
-    // Calculate base value - adjusted denominator for proper scaling
-    const startingPositionSlots = Math.min(totalAtPosition, league.total_teams);
-    let baseValue = Math.max(1, Math.round(positionBudget * budgetShare / Math.max(1, startingPositionSlots * 0.6)));
+    // Only calculate value for players likely to be drafted
+    if (rank > expectedDrafted * 1.5) {
+      return 1; // Deep bench/undrafted players worth $1
+    }
     
-    // Apply market adjustments
+    // CORRECTED: Use exponential decay curve instead of linear percentiles
+    const draftPercentile = rank / expectedDrafted;
     
-    // 1. Scarcity premium for scarce positions
+    let multiplier;
+    if (draftPercentile <= 0.1) {        // Top 10% of drafted players
+      multiplier = 3.0 + (0.1 - draftPercentile) * 10; // 3x to 4x average
+    } else if (draftPercentile <= 0.3) { // Next 20% (elite tier)
+      multiplier = 1.8 + (0.3 - draftPercentile) * 6; // 1.8x to 3x average
+    } else if (draftPercentile <= 0.7) { // Solid starters  
+      multiplier = 1.0 + (0.7 - draftPercentile) * 2; // 1x to 1.8x average
+    } else {                            // Bench players
+      multiplier = 0.3 + (1.0 - draftPercentile) * 2.3; // 0.3x to 1x average
+    }
+    
+    // Calculate average value per drafted player at this position
+    const averageValue = positionBudget / expectedDrafted;
+    let baseValue = Math.max(1, Math.round(averageValue * multiplier));
+    
+    // Apply MODERATE market adjustments (reduced from previous)
     if (player.position === 'TE') {
-      baseValue = Math.round(baseValue * 1.15); // +15% TE scarcity premium
+      baseValue = Math.round(baseValue * 1.05); // +5% TE scarcity (reduced)
     } else if (player.position === 'RB') {
-      baseValue = Math.round(baseValue * 1.10); // +10% RB scarcity premium
-    }
-    
-    // 2. Additional boost for top-tier players
-    if (percentile <= 0.05) { // Top 5% get extra boost
-      baseValue = Math.round(baseValue * 1.25);
+      baseValue = Math.round(baseValue * 1.03); // +3% RB scarcity (reduced)  
     }
     
     return Math.max(1, baseValue);
