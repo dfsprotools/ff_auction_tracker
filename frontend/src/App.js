@@ -1065,6 +1065,14 @@ const AuctionTracker = () => {
     const [lastUpdateTime, setLastUpdateTime] = useState(new Date());
     const [isUpdating, setIsUpdating] = useState(false);
 
+    // Initialize with same league data as control interface
+    useEffect(() => {
+      if (!league) {
+        console.log('Display interface initializing - loading demo league...');
+        loadDemoLeague();
+      }
+    }, []);
+
     // Real-time sync: Poll for updates every 3 seconds on display interface
     useEffect(() => {
       let pollInterval;
