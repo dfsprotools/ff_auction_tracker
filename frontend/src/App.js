@@ -266,47 +266,78 @@ const AuctionTracker = () => {
       return;
     }
 
-    // Create CSV data - one row per pick
-    const csvData = [];
-    csvData.push(['Team Name', 'Player Name', 'Position', 'NFL Team', 'Draft Cost', 'Pick Number', 'ETR Rank']);
+    try {
+      // Create CSV data - one row per pick
+      const csvData = [];
+      csvData.push(['Team Name', 'Player Name', 'Position', 'NFL Team', 'Draft Cost', 'Pick Number', 'ETR Rank']);
 
-    // Sort picks by timestamp to maintain draft order
-    const sortedPicks = [...league.all_picks].sort((a, b) => 
-      new Date(a.timestamp) - new Date(b.timestamp)
-    );
+      // Sort picks by timestamp to maintain draft order
+      const sortedPicks = [...league.all_picks].sort((a, b) => 
+        new Date(a.timestamp) - new Date(b.timestamp)
+      );
 
-    sortedPicks.forEach((pick, index) => {
-      const team = league.teams.find(t => t.id === pick.team_id);
-      csvData.push([
-        team?.name || 'Unknown Team',
-        pick.player.name,
-        pick.player.position,
-        pick.player.nfl_team,
-        `$${pick.amount}`,
-        index + 1,
-        pick.player.etr_rank || 'N/A'
-      ]);
-    });
+      sortedPicks.forEach((pick, index) => {
+        const team = league.teams.find(t => t.id === pick.team_id);
+        csvData.push([
+          team?.name || 'Unknown Team',
+          pick.player.name,
+          pick.player.position,
+          pick.player.nfl_team,
+          `$${pick.amount}`,
+          index + 1,
+          pick.player.etr_rank || 'N/A'
+        ]);
+      });
 
-    // Convert to CSV string
-    const csvContent = csvData.map(row => 
-      row.map(field => `"${field}"`).join(',')
-    ).join('\n');
+      // Convert to CSV string
+      const csvContent = csvData.map(row => 
+        row.map(field => `"${field}"`).join(',')
+      ).join('\n');
 
-    // Create and download file
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    if (link.download !== undefined) {
-      const url = URL.createObjectURL(blob);
-      link.setAttribute('href', url);
-      link.setAttribute('download', `${league.name}_draft_results.csv`);
-      link.style.visibility = 'hidden';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      // Enhanced download mechanism with better browser compatibility
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const filename = `${league.name.replace(/[^a-z0-9]/gi, '_')}_draft_results.csv`;
+      
+      // Try multiple download methods for better compatibility
+      if (window.navigator && window.navigator.msSaveOrOpenBlob) {
+        // IE/Edge support
+        window.navigator.msSaveOrOpenBlob(blob, filename);
+      } else {
+        // Modern browsers
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        
+        // Set attributes
+        link.href = url;
+        link.download = filename;
+        link.style.display = 'none';
+        link.style.visibility = 'hidden';
+        
+        // Add to DOM, click, and remove
+        document.body.appendChild(link);
+        
+        // Force click with user gesture simulation
+        const clickEvent = new MouseEvent('click', {
+          view: window,
+          bubbles: true,
+          cancelable: true
+        });
+        link.dispatchEvent(clickEvent);
+        
+        // Cleanup
+        setTimeout(() => {
+          document.body.removeChild(link);
+          URL.revokeObjectURL(url);
+        }, 100);
+      }
+
+      toast.success(`Draft results exported: ${league.all_picks.length} picks`);
+      console.log('CSV export completed successfully');
+      
+    } catch (error) {
+      console.error('Error exporting CSV:', error);
+      toast.error('Failed to export CSV file. Please try again.');
     }
-
-    toast.success(`Draft results exported: ${league.all_picks.length} picks`);
   };
 
   // Export team rosters (alternative format - one row per team with all players)
