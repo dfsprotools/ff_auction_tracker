@@ -249,8 +249,8 @@ async def create_demo_league():
             budget=300,
             remaining=300,
             roster_spots={
-                "QB": 1, "RB": 2, "WR": 2, "TE": 1, 
-                "FLEX": 1, "K": 1, "DEF": 1
+                "QB": 1, "RB": 2, "WR": 3, "TE": 1, 
+                "FLEX": 1, "DEF": 1
             }
         )
         team = calculate_team_metrics(team, {
