@@ -929,26 +929,27 @@ const AuctionTracker = () => {
       let pollInterval;
       
       const pollForUpdates = async () => {
-        if (!league?.id) return;
-        
         try {
           setIsUpdating(true);
-          const response = await axios.get(`${API}/leagues/${league.id}`);
-          const updatedLeague = response.data;
           
-          // Always update the league data for real-time sync
+          // Get the latest league (always fetch the most recent one)
+          const leaguesResponse = await axios.get(`${API}/leagues`);
+          const latestLeague = leaguesResponse.data[0]; // Get the first/latest league
+          
+          if (!latestLeague) return;
+          
+          // Always update to ensure we have the latest data
           const currentPickCount = league?.all_picks?.length || 0;
-          const newPickCount = updatedLeague?.all_picks?.length || 0;
+          const newPickCount = latestLeague?.all_picks?.length || 0;
           
-          if (JSON.stringify(updatedLeague) !== JSON.stringify(league)) {
-            setLeague(updatedLeague);
-            setLastUpdateTime(new Date());
-            
-            if (newPickCount > currentPickCount) {
-              console.log(`🔄 Display updated: ${newPickCount - currentPickCount} new picks`);
-            } else {
-              console.log(`🔄 Display refreshed: synced latest data`);
-            }
+          // Update league data
+          setLeague(latestLeague);
+          setLastUpdateTime(new Date());
+          
+          if (newPickCount > currentPickCount) {
+            console.log(`🔄 Display updated: ${newPickCount - currentPickCount} new picks`);
+          } else if (newPickCount !== currentPickCount) {
+            console.log(`🔄 Display refreshed: synced latest data (${newPickCount} picks)`);
           }
         } catch (error) {
           console.error('Error polling for updates:', error);
@@ -960,14 +961,14 @@ const AuctionTracker = () => {
       // Start polling every 3 seconds
       pollInterval = setInterval(pollForUpdates, 3000);
       
-      // Initial poll
+      // Initial poll immediately
       pollForUpdates();
 
       // Cleanup on unmount
       return () => {
         if (pollInterval) clearInterval(pollInterval);
       };
-    }, [league?.id, league?.all_picks?.length]);
+    }, []); // Remove dependencies to ensure it always runs
 
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4">
