@@ -1069,68 +1069,70 @@ const AuctionTracker = () => {
   // Display Interface - AUCTION TRACKER (Extended Monitor/HDMI Display)
   const DisplayInterface = () => {
     console.log('DisplayInterface rendering...');
+    const [displayLeague, setDisplayLeague] = useState(null);
     const [lastUpdateTime, setLastUpdateTime] = useState(new Date());
     const [isUpdating, setIsUpdating] = useState(false);
+    const [initialLoading, setInitialLoading] = useState(true);
 
-    // Initialize with same league data as control interface
+    // Initialize display with league data - ONE TIME ONLY
     useEffect(() => {
       const initializeDisplay = async () => {
-        // Try to get the current league ID from localStorage (set by control interface)
-        const storedLeagueId = localStorage.getItem('current_league_id');
-        
-        if (storedLeagueId && storedLeagueId !== league?.id) {
-          try {
+        try {
+          setInitialLoading(true);
+          
+          // Try to get the current league ID from localStorage
+          const storedLeagueId = localStorage.getItem('current_league_id');
+          
+          if (storedLeagueId) {
             console.log('Display loading league from storage:', storedLeagueId);
             const response = await axios.get(`${API}/leagues/${storedLeagueId}`);
-            setLeague(response.data);
-          } catch (error) {
-            console.error('Error loading stored league:', error);
-            // Fallback to loading demo league
-            loadDemoLeague();
+            setDisplayLeague(response.data);
+          } else {
+            // Load the most recent league
+            const leaguesResponse = await axios.get(`${API}/leagues`);
+            if (leaguesResponse.data && leaguesResponse.data.length > 0) {
+              setDisplayLeague(leaguesResponse.data[0]);
+            } else {
+              // Create demo league
+              const response = await axios.post(`${API}/demo-league`);
+              setDisplayLeague(response.data);
+            }
           }
-        } else if (!league) {
-          console.log('Display interface initializing - loading demo league...');
-          loadDemoLeague();
+          
+          setLastUpdateTime(new Date());
+        } catch (error) {
+          console.error('Error initializing display:', error);
+        } finally {
+          setInitialLoading(false);
         }
       };
       
       initializeDisplay();
-    }, []);
+    }, []); // Only run once on mount
 
-    // Real-time sync: Poll for updates every 3 seconds on display interface
+    // Stable polling - only update when there are actual changes
     useEffect(() => {
+      if (!displayLeague?.id || initialLoading) return;
+
       let pollInterval;
       
       const pollForUpdates = async () => {
         try {
           setIsUpdating(true);
           
-          // Use the same league loading logic as the main app
-          if (!league?.id) {
-            // If no league loaded, load demo league like control interface does
-            const response = await axios.post(`${API}/demo-league`);
-            setLeague(response.data);
-            setLastUpdateTime(new Date());
-            console.log('🔄 Display loaded demo league');
-            return;
-          }
-          
-          // Poll the specific league that control is using
-          const response = await axios.get(`${API}/leagues/${league.id}`);
+          const response = await axios.get(`${API}/leagues/${displayLeague.id}`);
           const updatedLeague = response.data;
           
-          // Always update to ensure latest data
-          const currentPickCount = league?.all_picks?.length || 0;
+          // Only update if there are meaningful changes
+          const currentPickCount = displayLeague?.all_picks?.length || 0;
           const newPickCount = updatedLeague?.all_picks?.length || 0;
+          const currentTeamData = JSON.stringify(displayLeague?.teams?.map(t => ({ spent: t.spent, remaining: t.remaining })));
+          const newTeamData = JSON.stringify(updatedLeague?.teams?.map(t => ({ spent: t.spent, remaining: t.remaining })));
           
-          // Update league data
-          setLeague(updatedLeague);
-          setLastUpdateTime(new Date());
-          
-          if (newPickCount > currentPickCount) {
-            console.log(`🔄 Display updated: ${newPickCount - currentPickCount} new picks`);
-          } else if (JSON.stringify(updatedLeague) !== JSON.stringify(league)) {
-            console.log(`🔄 Display refreshed: synced latest data (${newPickCount} picks)`);
+          if (newPickCount !== currentPickCount || currentTeamData !== newTeamData) {
+            setDisplayLeague(updatedLeague);
+            setLastUpdateTime(new Date());
+            console.log(`🔄 Display updated: ${newPickCount} picks, budgets synced`);
           }
         } catch (error) {
           console.error('Error polling for updates:', error);
@@ -1139,17 +1141,26 @@ const AuctionTracker = () => {
         }
       };
 
-      // Start polling every 3 seconds
-      pollInterval = setInterval(pollForUpdates, 3000);
+      // Poll every 5 seconds (less aggressive)
+      pollInterval = setInterval(pollForUpdates, 5000);
       
-      // Initial poll immediately
-      pollForUpdates();
-
       // Cleanup on unmount
       return () => {
         if (pollInterval) clearInterval(pollInterval);
       };
-    }, [league?.id]); // Depend on league.id to restart polling when league changes
+    }, [displayLeague?.id, initialLoading]);
+
+    // Show loading screen only during initial load
+    if (initialLoading) {
+      return (
+        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
+          <div className="text-center">
+            <div className="text-5xl font-bold text-white mb-4">🏈 Loading Auction Tracker...</div>
+            <div className="text-xl text-slate-300">Setting up your draft board</div>
+          </div>
+        </div>
+      );
+    }
 
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4">
@@ -1165,20 +1176,20 @@ const AuctionTracker = () => {
             )}
           </div>
           <div className="text-2xl text-slate-300 mb-4">
-            {league?.name || 'Fantasy Football Auction'} • Live Draft Board
+            {displayLeague?.name || 'Fantasy Football Auction'} • Live Draft Board
           </div>
           <div className="text-xl text-slate-400 mb-2">
-            {league?.total_teams} Teams • ${league?.budget_per_team} Budget • {league?.roster_size} Roster Spots • Draft Picks: {league?.all_picks?.length || 0}
+            {displayLeague?.total_teams} Teams • ${displayLeague?.budget_per_team} Budget • {displayLeague?.roster_size} Roster Spots • Draft Picks: {displayLeague?.all_picks?.length || 0}
           </div>
           <div className="text-sm text-slate-500">
-            Last Updated: {lastUpdateTime.toLocaleTimeString()} • Auto-refreshing every 3 seconds
+            Last Updated: {lastUpdateTime.toLocaleTimeString()} • Auto-refreshing every 5 seconds
           </div>
         </div>
 
         {/* Team Cards Grid - Comprehensive Auction Display */}
         <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 mb-8">
-          {league?.teams?.map((team, index) => {
-            const positionsNeeded = calculatePositionsNeeded(team, league.position_requirements);
+          {displayLeague?.teams?.map((team, index) => {
+            const positionsNeeded = calculatePositionsNeeded(team, displayLeague.position_requirements);
             const budgetUtilization = ((team.spent / team.budget) * 100).toFixed(1);
             
             return (
@@ -1187,7 +1198,7 @@ const AuctionTracker = () => {
                 <div className="text-center mb-4">
                   <h3 className="text-xl font-bold text-white mb-1">{team.name}</h3>
                   <div className="text-sm text-slate-300">
-                    Team {index + 1} • {team.roster.length}/{league.roster_size} Players
+                    Team {index + 1} • {team.roster.length}/{displayLeague.roster_size} Players
                   </div>
                 </div>
 
@@ -1267,12 +1278,12 @@ const AuctionTracker = () => {
         </div>
 
         {/* Recent Draft Activity - Full Width */}
-        {league?.all_picks && league.all_picks.length > 0 && (
+        {displayLeague?.all_picks && displayLeague.all_picks.length > 0 && (
           <div className="bg-white/5 backdrop-blur-md border border-white/20 rounded-lg p-6 mb-6">
             <h2 className="text-2xl font-bold text-white mb-4 text-center">📋 RECENT DRAFT ACTIVITY</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-              {league.all_picks.slice(-12).reverse().map((pick, index) => {
-                const team = league.teams.find(t => t.id === pick.team_id);
+              {displayLeague.all_picks.slice(-12).reverse().map((pick, index) => {
+                const team = displayLeague.teams.find(t => t.id === pick.team_id);
                 return (
                   <div key={pick.id} className="bg-slate-800/50 rounded-lg p-3 border-l-4 border-emerald-500">
                     <div className="flex justify-between items-center mb-2">
@@ -1286,7 +1297,7 @@ const AuctionTracker = () => {
                       </Badge>
                     </div>
                     <div className="text-xs text-slate-400 mt-1">
-                      {pick.player.nfl_team} • Pick #{league.all_picks.length - index}
+                      {pick.player.nfl_team} • Pick #{displayLeague.all_picks.length - index}
                     </div>
                   </div>
                 );
@@ -1298,24 +1309,24 @@ const AuctionTracker = () => {
         {/* Draft Summary Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-lg p-4 text-center">
-            <div className="text-3xl font-bold text-emerald-400">{league?.all_picks?.length || 0}</div>
+            <div className="text-3xl font-bold text-emerald-400">{displayLeague?.all_picks?.length || 0}</div>
             <div className="text-slate-300 text-sm">Total Picks</div>
           </div>
           <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-lg p-4 text-center">
             <div className="text-3xl font-bold text-blue-400">
-              ${league?.teams?.reduce((sum, team) => sum + team.spent, 0) || 0}
+              ${displayLeague?.teams?.reduce((sum, team) => sum + team.spent, 0) || 0}
             </div>
             <div className="text-slate-300 text-sm">Total Spent</div>
           </div>
           <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-lg p-4 text-center">
             <div className="text-3xl font-bold text-yellow-400">
-              ${league?.teams?.reduce((sum, team) => sum + team.remaining, 0) || 0}
+              ${displayLeague?.teams?.reduce((sum, team) => sum + team.remaining, 0) || 0}
             </div>
             <div className="text-slate-300 text-sm">Total Remaining</div>
           </div>
           <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-lg p-4 text-center">
             <div className="text-3xl font-bold text-purple-400">
-              {league?.teams?.reduce((sum, team) => sum + team.remaining_spots, 0) || 0}
+              {displayLeague?.teams?.reduce((sum, team) => sum + team.remaining_spots, 0) || 0}
             </div>
             <div className="text-slate-300 text-sm">Open Spots</div>
           </div>
