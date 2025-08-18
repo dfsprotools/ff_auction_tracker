@@ -433,7 +433,7 @@ const AuctionTracker = () => {
       });
     }
     
-    return positionsNeeded.slice(0, 8);
+    return positionsNeeded;
   };
 
   // Dynamic Auction Value Calculation System
