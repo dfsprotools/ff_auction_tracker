@@ -11,6 +11,7 @@ import { Search, DollarSign, Users, Trophy, Undo2, Plus, Settings, Edit, Save, X
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from './components/ui/dialog';
 import { toast } from 'sonner';
 import { Label } from './components/ui/label';
+import { Toaster } from './components/ui/sonner';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
