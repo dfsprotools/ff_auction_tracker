@@ -4,7 +4,7 @@ from datetime import datetime
 import json
 
 class FantasyFootballAPITester:
-    def __init__(self, base_url="https://f62c9dd1-ed84-4e7d-b3b1-56d81ffbd9ae.preview.emergentagent.com"):
+    def __init__(self, base_url="https://draft-sync-hub.preview.emergentagent.com"):
         self.base_url = base_url
         self.api_url = f"{base_url}/api"
         self.league_id = None

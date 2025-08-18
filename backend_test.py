@@ -11,7 +11,7 @@ from datetime import datetime
 from typing import Dict, Any, Optional
 
 class FantasyFootballAPITester:
-    def __init__(self, base_url="https://fresh-start-44.preview.emergentagent.com"):
+    def __init__(self, base_url="https://draft-sync-hub.preview.emergentagent.com"):
         self.base_url = base_url
         self.api_url = f"{base_url}/api"
         self.league_id = None
