@@ -265,8 +265,8 @@ async def create_demo_league():
         budget_per_team=300,
         roster_size=16,
         position_requirements={
-            "QB": 1, "RB": 2, "WR": 2, "TE": 1, 
-            "FLEX": 1, "K": 1, "DEF": 1
+            "QB": 1, "RB": 2, "WR": 3, "TE": 1, 
+            "FLEX": 1, "DEF": 1
         },
         teams=teams
     )
