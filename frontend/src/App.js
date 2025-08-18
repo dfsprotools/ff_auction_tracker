@@ -1246,7 +1246,7 @@ const AuctionTracker = () => {
                 <div className="mb-4">
                   <div className="text-slate-300 text-xs font-medium mb-2">POSITIONS NEEDED</div>
                   <div className="flex flex-wrap gap-1">
-                    {positionsNeeded.slice(0, 6).map((pos, idx) => (
+                    {positionsNeeded.map((pos, idx) => (
                       <Badge
                         key={idx}
                         className={`text-xs ${getPositionColorClass(pos.position)}`}
