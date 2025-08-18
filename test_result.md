@@ -140,7 +140,8 @@ metadata:
   run_ui: false
 
 test_plan:
-  current_focus: []
+  current_focus:
+    - "Fix CSV export functionality - file download not working"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
