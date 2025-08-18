@@ -685,7 +685,8 @@ const AuctionTracker = () => {
                     key={index}
                     onClick={() => {
                       setSearchQuery(player.name);
-                      setSearchResults([player]);
+                      setSearchResults([player]); // Keep exactly one player for draft button
+                      console.log('Player selected:', player.name, 'Search results now:', 1); // Debug
                     }}
                     className="p-2 bg-slate-700 rounded cursor-pointer hover:bg-slate-600 transition-colors"
                   >
