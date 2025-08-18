@@ -895,56 +895,83 @@ const AuctionTracker = () => {
     </div>
   );
 
-  // Display Interface (TV View) - Read-only
+  // Display Interface - AUCTION TRACKER (Extended Monitor/HDMI Display)
   const DisplayInterface = () => {
     console.log('DisplayInterface rendering...');
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-6">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-white mb-2">{league?.name || 'Fantasy Football Auction'}</h1>
-          <div className="text-xl text-slate-300">
-            {league?.total_teams} Teams • ${league?.budget_per_team} Budget • {league?.roster_size} Roster Spots
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4">
+        {/* Auction Tracker Header */}
+        <div className="text-center mb-6">
+          <h1 className="text-5xl font-bold text-white mb-2">🏈 AUCTION TRACKER</h1>
+          <div className="text-2xl text-slate-300 mb-4">
+            {league?.name || 'Fantasy Football Auction'} • Live Draft Board
+          </div>
+          <div className="text-xl text-slate-400">
+            {league?.total_teams} Teams • ${league?.budget_per_team} Budget • {league?.roster_size} Roster Spots • Draft Picks: {league?.all_picks?.length || 0}
           </div>
         </div>
 
-        <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {league?.teams?.map((team, index) => (
-            <Card key={team.id} className="bg-white/10 backdrop-blur-md border-white/20">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-white text-lg">{team.name}</CardTitle>
-                <div className="text-sm text-slate-300">
-                  Budget: ${team.remaining} • Spots: {team.remaining_spots}
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="mb-3 p-2 bg-slate-800/50 rounded border-l-4 border-emerald-500">
-                  <div className="text-slate-300 text-xs">MAX BID</div>
-                  <div className={`text-xl ${getMaxBidColorClass(team.max_bid)}`}>
-                    ${team.max_bid}
+        {/* Team Cards Grid - Comprehensive Auction Display */}
+        <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 mb-8">
+          {league?.teams?.map((team, index) => {
+            const positionsNeeded = calculatePositionsNeeded(team, league.position_requirements);
+            const budgetUtilization = ((team.spent / team.budget) * 100).toFixed(1);
+            
+            return (
+              <div key={team.id} className="bg-white/10 backdrop-blur-md border border-white/20 rounded-lg p-4 hover:bg-white/15 transition-colors">
+                {/* Team Header */}
+                <div className="text-center mb-4">
+                  <h3 className="text-xl font-bold text-white mb-1">{team.name}</h3>
+                  <div className="text-sm text-slate-300">
+                    Team {index + 1} • {team.roster.length}/{league.roster_size} Players
                   </div>
                 </div>
 
-                <div className="space-y-1">
-                  <div className="text-slate-400 text-xs font-medium">
-                    Roster ({team.roster.length}/{league.roster_size})
+                {/* Budget Overview */}
+                <div className="mb-4 space-y-2">
+                  <div className="bg-slate-800/50 rounded p-3 border-l-4 border-emerald-500">
+                    <div className="text-slate-300 text-xs font-medium">MAX BID</div>
+                    <div className={`text-2xl font-bold ${getMaxBidColorClass(team.max_bid)}`}>
+                      ${team.max_bid}
+                    </div>
                   </div>
-                  <div className="max-h-32 overflow-y-auto space-y-1">
-                    {team.roster.slice(-3).map((pick, idx) => (
-                      <div key={pick.id} className="flex justify-between text-xs">
-                        <span className="text-white">{pick.player.name}</span>
-                        <span className="text-emerald-400">${pick.amount}</span>
+                  
+                  <div className="grid grid-cols-2 gap-2 text-sm">
+                    <div className="bg-slate-800/30 rounded p-2">
+                      <div className="text-slate-400 text-xs">Spent</div>
+                      <div className="text-red-400 font-bold">${team.spent}</div>
+                    </div>
+                    <div className="bg-slate-800/30 rounded p-2">
+                      <div className="text-slate-400 text-xs">Remaining</div>
+                      <div className="text-green-400 font-bold">${team.remaining}</div>
+                    </div>
+                    <div className="bg-slate-800/30 rounded p-2">
+                      <div className="text-slate-400 text-xs">Avg/Spot</div>
+                      <div className="text-blue-400 font-bold">${team.avg_per_spot}</div>
+                    </div>
+                    <div className="bg-slate-800/30 rounded p-2">
+                      <div className="text-slate-400 text-xs">Used</div>
+                      <div className={`font-bold ${budgetUtilization > 80 ? 'text-red-400' : budgetUtilization > 50 ? 'text-yellow-400' : 'text-green-400'}`}>
+                        {budgetUtilization}%
                       </div>
-                    ))}
-                    {team.roster.length === 0 && (
-                      <div className="text-slate-500 text-xs italic">No players</div>
-                    )}
+                    </div>
                   </div>
                 </div>
 
-                <div className="mt-3">
-                  <div className="text-slate-400 text-xs font-medium mb-1">Positions Needed</div>
+                {/* Roster Spots Remaining */}
+                <div className="mb-4">
+                  <div className="text-slate-300 text-xs font-medium mb-2">ROSTER SPOTS</div>
+                  <div className="text-center">
+                    <span className="text-2xl font-bold text-orange-400">{team.remaining_spots}</span>
+                    <span className="text-slate-400 ml-1">left</span>
+                  </div>
+                </div>
+
+                {/* Positions Needed */}
+                <div className="mb-4">
+                  <div className="text-slate-300 text-xs font-medium mb-2">POSITIONS NEEDED</div>
                   <div className="flex flex-wrap gap-1">
-                    {calculatePositionsNeeded(team, league.position_requirements).slice(0, 4).map((pos, idx) => (
+                    {positionsNeeded.slice(0, 6).map((pos, idx) => (
                       <Badge
                         key={idx}
                         className={`text-xs ${getPositionColorClass(pos.position)}`}
@@ -954,29 +981,48 @@ const AuctionTracker = () => {
                     ))}
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-          ))}
+
+                {/* Recent Picks */}
+                <div>
+                  <div className="text-slate-300 text-xs font-medium mb-2">RECENT PICKS</div>
+                  <div className="space-y-1 max-h-24 overflow-y-auto">
+                    {team.roster.slice(-3).map((pick, idx) => (
+                      <div key={pick.id} className="flex justify-between text-xs bg-slate-700/50 rounded p-1">
+                        <span className="text-white font-medium">{pick.player.name}</span>
+                        <span className="text-emerald-400 font-bold">${pick.amount}</span>
+                      </div>
+                    ))}
+                    {team.roster.length === 0 && (
+                      <div className="text-slate-500 text-xs italic text-center py-2">No picks yet</div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </div>
 
+        {/* Recent Draft Activity - Full Width */}
         {league?.all_picks && league.all_picks.length > 0 && (
-          <div className="mt-8">
-            <h2 className="text-2xl font-bold text-white mb-4">Recent Picks</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-              {league.all_picks.slice(-9).reverse().map((pick, index) => {
+          <div className="bg-white/5 backdrop-blur-md border border-white/20 rounded-lg p-6">
+            <h2 className="text-2xl font-bold text-white mb-4 text-center">📋 RECENT DRAFT ACTIVITY</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+              {league.all_picks.slice(-12).reverse().map((pick, index) => {
                 const team = league.teams.find(t => t.id === pick.team_id);
                 return (
-                  <div key={pick.id} className="bg-white/5 rounded-lg p-3 border border-white/10">
-                    <div className="flex justify-between items-center">
-                      <div>
-                        <div className="text-white font-medium">{pick.player.name}</div>
-                        <div className="text-slate-400 text-sm">
-                          {pick.player.position} • {team?.name}
-                        </div>
-                      </div>
-                      <div className="text-emerald-400 font-bold text-lg">
-                        ${pick.amount}
-                      </div>
+                  <div key={pick.id} className="bg-slate-800/50 rounded-lg p-3 border-l-4 border-emerald-500">
+                    <div className="flex justify-between items-center mb-2">
+                      <div className="text-white font-bold text-lg">{pick.player.name}</div>
+                      <div className="text-emerald-400 font-bold text-xl">${pick.amount}</div>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-slate-300">{team?.name}</span>
+                      <Badge className={getPositionColorClass(pick.player.position)}>
+                        {pick.player.position}
+                      </Badge>
+                    </div>
+                    <div className="text-xs text-slate-400 mt-1">
+                      {pick.player.nfl_team} • Pick #{league.all_picks.length - index}
                     </div>
                   </div>
                 );
@@ -984,6 +1030,32 @@ const AuctionTracker = () => {
             </div>
           </div>
         )}
+
+        {/* Draft Summary Stats */}
+        <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-lg p-4 text-center">
+            <div className="text-3xl font-bold text-emerald-400">{league?.all_picks?.length || 0}</div>
+            <div className="text-slate-300 text-sm">Total Picks</div>
+          </div>
+          <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-lg p-4 text-center">
+            <div className="text-3xl font-bold text-blue-400">
+              ${league?.teams?.reduce((sum, team) => sum + team.spent, 0) || 0}
+            </div>
+            <div className="text-slate-300 text-sm">Total Spent</div>
+          </div>
+          <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-lg p-4 text-center">
+            <div className="text-3xl font-bold text-yellow-400">
+              ${league?.teams?.reduce((sum, team) => sum + team.remaining, 0) || 0}
+            </div>
+            <div className="text-slate-300 text-sm">Total Remaining</div>
+          </div>
+          <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-lg p-4 text-center">
+            <div className="text-3xl font-bold text-purple-400">
+              {league?.teams?.reduce((sum, team) => sum + team.remaining_spots, 0) || 0}
+            </div>
+            <div className="text-slate-300 text-sm">Open Spots</div>
+          </div>
+        </div>
       </div>
     );
   };
