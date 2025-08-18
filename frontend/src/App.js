@@ -704,11 +704,7 @@ const AuctionTracker = () => {
                 
                 <div className="text-right">
                   <div className="text-emerald-400 font-medium">
-                    Suggested: $
-                    {player.etr_rank <= 10 ? '80-100' :
-                     player.etr_rank <= 30 ? '40-80' :
-                     player.etr_rank <= 50 ? '20-40' :
-                     player.etr_rank <= 100 ? '10-20' : '1-10'}
+                    Auction Value: ${getAuctionValue(player)}
                   </div>
                   <div className={`text-sm font-medium ${
                     isDrafted ? 'text-red-400' : 'text-green-400'
