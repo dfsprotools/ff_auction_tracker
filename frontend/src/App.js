@@ -399,6 +399,17 @@ const AuctionTracker = () => {
     return auctionValues[key] || 1;
   }, [auctionValues]);
 
+  // Filter players by position
+  const getFilteredPlayers = () => {
+    if (!playerDatabase) return [];
+    
+    if (activePosition === 'ALL') {
+      return playerDatabase.slice(0, 50);
+    }
+    
+    return playerDatabase.filter(player => player.position === activePosition).slice(0, 30);
+  };
+
   // League Settings Dialog
   const LeagueSettingsDialog = React.memo(() => {
     const [localLeagueSettings, setLocalLeagueSettings] = useState(leagueSettings);
