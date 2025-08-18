@@ -153,7 +153,7 @@ agent_communication:
     - agent: "main"
       message: "User reported missing TE and DST positions on /display page. Identified the issue: DisplayInterface line ~1249 uses positionsNeeded.slice(0, 6) which truncates the positions list. Need to increase this limit or remove it entirely to show all needed positions including TE and DEF."
     - agent: "main"
-      message: "User requested comprehensive frontend testing to verify that the TE and DEF positions display fix is working correctly on the /display page. Need to test: 1) All positions show in POSITIONS NEEDED sections, 2) TE positions are visible, 3) DEF positions appear when teams need defense players, 4) No positions are truncated, 5) Display page loads and updates correctly." user's reported problem. The issue was frontend display limitation (already fixed by main agent), not backend data availability."
+      message: "User reported CSV export shows success toast but no file download. Testing agent found the CSV functionality actually works but needed better browser compatibility. Enhanced both export functions with IE/Edge support, error handling, filename sanitization, and more robust download mechanism with MouseEvent simulation."
     - agent: "testing"
       message: "TESTING COMPLETE: ✅ TE fix is WORKING - all 14 teams show TE positions correctly. ❌ DEF positions still MISSING - 0/14 teams show DEF despite league settings having DEF: 1 configured. The .slice() removal fixed TE visibility but DEF positions are not being calculated/displayed by calculatePositionsNeeded function. Need to investigate why DEF positions are not appearing in the position requirements processing."
     - agent: "testing"
