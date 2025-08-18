@@ -62,7 +62,14 @@ const AuctionTracker = () => {
         params: { limit: 500, q: '' }
       });
       console.log('Loaded players:', response.data?.length || 0);
-      setPlayerDatabase(response.data || []);
+      
+      // Filter out Kickers completely
+      const playersWithoutKickers = (response.data || []).filter(player => 
+        player.position !== 'K'
+      );
+      
+      console.log('Players after removing Kickers:', playersWithoutKickers.length);
+      setPlayerDatabase(playersWithoutKickers);
     } catch (error) {
       console.error('Error loading player database:', error);
       setPlayerDatabase([]);
