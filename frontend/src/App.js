@@ -304,16 +304,100 @@ const AuctionTracker = () => {
     return positionsNeeded.slice(0, 8);
   };
 
-  // Filter players by position
-  const getFilteredPlayers = () => {
-    if (!playerDatabase) return [];
+  // Dynamic Auction Value Calculation System
+  const calculateAuctionValues = useCallback((players, leagueConfig) => {
+    if (!players || !leagueConfig) return {};
+
+    const totalBudget = leagueConfig.total_teams * leagueConfig.budget_per_team;
     
-    if (activePosition === 'ALL') {
-      return playerDatabase.slice(0, 50);
-    }
-    
-    return playerDatabase.filter(player => player.position === activePosition).slice(0, 30);
-  };
+    // Position budget allocation (corrected values)
+    const positionBudgets = {
+      'RB': Math.floor(totalBudget * 0.32), // 32%
+      'WR': Math.floor(totalBudget * 0.38), // 38% 
+      'QB': Math.floor(totalBudget * 0.08), // 8%
+      'TE': Math.floor(totalBudget * 0.05), // 5%
+      'K': Math.floor(totalBudget * 0.008), // 0.8%
+      'DST': Math.floor(totalBudget * 0.008), // 0.8%
+    };
+
+    // Expected drafted players by position (realistic distribution)
+    const expectedDrafted = {
+      'QB': Math.floor(leagueConfig.total_teams * 1.5), // ~21 for 14 teams
+      'RB': Math.floor(leagueConfig.total_teams * 2.8), // ~39 for 14 teams  
+      'WR': Math.floor(leagueConfig.total_teams * 3.2), // ~45 for 14 teams
+      'TE': Math.floor(leagueConfig.total_teams * 1.4), // ~20 for 14 teams
+      'K': leagueConfig.total_teams + 1, // ~15 for 14 teams
+      'DST': leagueConfig.total_teams + 1, // ~15 for 14 teams
+    };
+
+    const auctionValues = {};
+
+    // Calculate values for each position
+    Object.keys(positionBudgets).forEach(position => {
+      const positionPlayers = players.filter(p => p.position === position);
+      const budget = positionBudgets[position];
+      const expectedCount = expectedDrafted[position];
+      
+      if (positionPlayers.length === 0 || expectedCount === 0) return;
+
+      // Base value per player
+      const baseValue = budget / expectedCount;
+
+      // Sort players by rank for tier assignment
+      const sortedPlayers = [...positionPlayers].sort((a, b) => 
+        (a.etr_rank || 999) - (b.etr_rank || 999)
+      );
+
+      sortedPlayers.forEach((player, index) => {
+        let multiplier = 1.0;
+        const percentile = index / Math.max(1, expectedCount - 1);
+
+        // Balanced multiplier system (not inflated)
+        if (percentile <= 0.1) { // Top 10%
+          multiplier = 2.2 + (0.3 * (1 - percentile * 10)); // 2.2x to 2.5x
+        } else if (percentile <= 0.3) { // Elite tier
+          multiplier = 1.4 + (0.8 * (1 - (percentile - 0.1) / 0.2)); // 1.4x to 2.2x
+        } else if (percentile <= 0.7) { // Solid tier  
+          multiplier = 0.8 + (0.6 * (1 - (percentile - 0.3) / 0.4)); // 0.8x to 1.4x
+        } else { // Bench tier
+          multiplier = 0.2 + (0.6 * (1 - (percentile - 0.7) / 0.3)); // 0.2x to 0.8x
+        }
+
+        // Scarcity adjustments (moderate, not excessive)
+        if (position === 'TE') {
+          multiplier *= 1.05; // +5% for TE scarcity
+        } else if (position === 'RB') {
+          multiplier *= 1.03; // +3% for RB scarcity  
+        }
+
+        // Calculate final value
+        let value = Math.round(baseValue * multiplier);
+        
+        // Minimum values
+        if (position === 'K' || position === 'DST') {
+          value = Math.max(1, value);
+        } else {
+          value = Math.max(1, value);
+        }
+
+        auctionValues[`${player.name}-${player.position}-${player.nfl_team}`] = value;
+      });
+    });
+
+    return auctionValues;
+  }, []);
+
+  // Calculate auction values when league or players change
+  const auctionValues = useMemo(() => {
+    if (!league || !playerDatabase) return {};
+    return calculateAuctionValues(playerDatabase, league);
+  }, [league, playerDatabase, calculateAuctionValues]);
+
+  // Helper function to get auction value for a player
+  const getAuctionValue = useCallback((player) => {
+    const key = `${player.name}-${player.position}-${player.nfl_team}`;
+    return auctionValues[key] || 1;
+  }, [auctionValues]);
 
   // League Settings Dialog
   const LeagueSettingsDialog = React.memo(() => {
