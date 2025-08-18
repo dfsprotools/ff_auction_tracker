@@ -1199,14 +1199,15 @@ const AuctionTracker = () => {
     return filtered.slice(0, 500); // Show all available players
   };
 
-  // DYNAMIC AUCTION VALUE SYSTEM - Based on Actual 2023 Data
+  // DYNAMIC AUCTION VALUE SYSTEM - CORRECTED PERCENTAGES
   const POSITION_BUDGETS = {
-    RB: 0.38, // 38% - $1,615 of $4,200 actual spend
-    WR: 0.45, // 45% - $1,890 of $4,200 actual spend  
-    QB: 0.10, // 10% - $420 of $4,200 actual spend
-    TE: 0.06, // 6% - $252 of $4,200 actual spend
-    K: 0.005, // 0.5% - $21 of $4,200 actual spend
-    DST: 0.005 // 0.5% - $21 of $4,200 actual spend
+    RB: 0.32,   // 32% - Reduced to account for full draft
+    WR: 0.38,   // 38% - Reduced to account for full draft  
+    QB: 0.08,   // 8% - Reduced slightly
+    TE: 0.05,   // 5% - Reduced slightly
+    K: 0.008,   // 0.8% - Kickers get minimal budget
+    DST: 0.008  // 0.8% - Defense gets minimal budget
+    // Remaining ~16% goes to undrafted players ($1 each)
   };
 
   // Enhanced suggested value function with CORRECTED dynamic calculation
