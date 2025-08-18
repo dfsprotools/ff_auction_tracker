@@ -321,20 +321,20 @@ const AuctionTracker = () => {
 
     const totalBudget = leagueConfig.total_teams * leagueConfig.budget_per_team;
     
-    // Position budget allocation (corrected values - NO KICKERS)
+    // Position budget allocation (updated for 3 WR format - NO KICKERS)
     const positionBudgets = {
-      'RB': Math.floor(totalBudget * 0.32), // 32%
-      'WR': Math.floor(totalBudget * 0.38), // 38% 
+      'RB': Math.floor(totalBudget * 0.30), // 30% (reduced from 32% due to more WR demand)
+      'WR': Math.floor(totalBudget * 0.42), // 42% (increased from 38% for 3 WR format) 
       'QB': Math.floor(totalBudget * 0.08), // 8%
       'TE': Math.floor(totalBudget * 0.05), // 5%
       'DST': Math.floor(totalBudget * 0.008), // 0.8%
     };
 
-    // Expected drafted players by position (realistic distribution - NO KICKERS)
+    // Expected drafted players by position (updated for 3 WR format - NO KICKERS)
     const expectedDrafted = {
       'QB': Math.floor(leagueConfig.total_teams * 1.5), // ~21 for 14 teams
       'RB': Math.floor(leagueConfig.total_teams * 2.8), // ~39 for 14 teams  
-      'WR': Math.floor(leagueConfig.total_teams * 3.2), // ~45 for 14 teams
+      'WR': Math.floor(leagueConfig.total_teams * 3.8), // ~53 for 14 teams (increased for 3 WR)
       'TE': Math.floor(leagueConfig.total_teams * 1.4), // ~20 for 14 teams
       'DST': leagueConfig.total_teams + 1, // ~15 for 14 teams
     };
