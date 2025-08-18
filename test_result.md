@@ -144,7 +144,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Verify TE and DEF position support in backend APIs"
+    - "Comprehensive frontend testing of TE and DEF position display fix"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
