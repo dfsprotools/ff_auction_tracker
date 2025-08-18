@@ -113,6 +113,7 @@ const AuctionTracker = () => {
   // Memoized bid amount handler
   const handleBidAmountChange = useCallback((value) => {
     setBidAmount(value);
+    console.log('Bid amount set:', value); // Debug
     
     setTimeout(() => {
       if (bidInputRef.current && document.activeElement !== bidInputRef.current) {
