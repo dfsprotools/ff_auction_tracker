@@ -37,7 +37,7 @@ const AuctionTracker = () => {
     position_requirements: {
       QB: 1,
       RB: 2, 
-      WR: 2,
+      WR: 3,
       TE: 1,
       FLEX: 1,
       DEF: 1
