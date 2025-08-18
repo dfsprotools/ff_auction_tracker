@@ -101,3 +101,35 @@
 #====================================================================================================
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
+
+user_problem_statement: "The TE and DST are missing from the Positions Needed on the /display page."
+
+frontend:
+  - task: "Fix missing TE and DEF positions in DisplayInterface positions needed section"
+    implemented: false
+    working: false
+    file: "/app/frontend/src/App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: false
+          agent: "main"
+          comment: "User reported TE and DST positions are missing from Positions Needed on /display page. Found issue at line ~1249 where positionsNeeded.slice(0, 6) limits display to 6 positions, but with QB(1) + RB(2) + WR(3) + TE(1) + FLEX(1) + DEF(1) = 9 total position slots, the TE and DEF positions get cut off."
+
+metadata:
+  created_by: "main_agent" 
+  version: "1.0"
+  test_sequence: 1
+  run_ui: false
+
+test_plan:
+  current_focus:
+    - "Fix missing TE and DEF positions in DisplayInterface positions needed section"
+  stuck_tasks: []
+  test_all: false
+  test_priority: "high_first"
+
+agent_communication:
+    - agent: "main"
+      message: "User reported missing TE and DST positions on /display page. Identified the issue: DisplayInterface line ~1249 uses positionsNeeded.slice(0, 6) which truncates the positions list. Need to increase this limit or remove it entirely to show all needed positions including TE and DEF."
