@@ -1928,6 +1928,7 @@ const AuctionTracker = () => {
           <TVDisplayInterface />
         </TabsContent>
       </Tabs>
+      <Toaster />
     </div>
   );
 };
