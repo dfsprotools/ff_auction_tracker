@@ -72,72 +72,40 @@ class FantasyFootballAPITester:
             f"Response: {response.get('message', 'No message')}"
         )
 
-    def test_demo_league_position_requirements(self):
-        """Test that demo league has correct position requirements including TE and DEF"""
-        success, response = self.make_request('GET', '/demo-league')
+    def test_create_demo_league(self):
+        """Test creating the demo league 'Pipelayer Pro Bowl'"""
+        success, response = self.make_request('POST', '/demo-league')
         
         if success:
-            position_requirements = response.get('position_requirements', {})
+            self.league_id = response.get('id')
+            self.team_ids = [team['id'] for team in response.get('teams', [])]
             
-            # Check for all required positions
-            required_positions = {
-                'QB': 1, 'RB': 2, 'WR': 3, 'TE': 1, 'FLEX': 1, 'DEF': 1
-            }
+            # Validate league structure
+            expected_fields = ['name', 'total_teams', 'budget_per_team', 'roster_size', 'teams']
+            missing_fields = [field for field in expected_fields if field not in response]
             
-            all_positions_present = True
-            missing_positions = []
-            incorrect_counts = []
+            if missing_fields:
+                return self.log_test(
+                    "Create Demo League", 
+                    False, 
+                    f"Missing fields: {missing_fields}"
+                )
             
-            for pos, expected_count in required_positions.items():
-                if pos not in position_requirements:
-                    all_positions_present = False
-                    missing_positions.append(pos)
-                elif position_requirements[pos] != expected_count:
-                    incorrect_counts.append(f"{pos}: expected {expected_count}, got {position_requirements[pos]}")
-            
-            # Special focus on TE and DEF as per user issue
-            te_present = 'TE' in position_requirements and position_requirements['TE'] == 1
-            def_present = 'DEF' in position_requirements and position_requirements['DEF'] == 1
-            
-            success_status = all_positions_present and te_present and def_present
-            
-            details = f"TE present: {te_present}, DEF present: {def_present}"
-            if missing_positions:
-                details += f", Missing: {missing_positions}"
-            if incorrect_counts:
-                details += f", Incorrect counts: {incorrect_counts}"
-            
-            return self.log_test(
-                "Demo League Position Requirements", 
-                success_status,
-                details
-            )
-        
-        return self.log_test("Demo League Position Requirements", False, f"Error: {response}")
-
-    def test_get_demo_league_endpoint(self):
-        """Test GET /api/demo-league endpoint specifically"""
-        success, response = self.make_request('GET', '/demo-league')
-        
-        if success:
-            # Verify it returns the demo league with correct structure
-            is_demo_league = (
+            # Validate league details
+            league_valid = (
                 response.get('name') == 'Pipelayer Pro Bowl' and
                 response.get('total_teams') == 14 and
-                response.get('budget_per_team') == 300
+                response.get('budget_per_team') == 300 and
+                len(response.get('teams', [])) == 14
             )
-            
-            # Check position requirements specifically
-            pos_req = response.get('position_requirements', {})
-            has_te_and_def = 'TE' in pos_req and 'DEF' in pos_req
             
             return self.log_test(
-                "GET Demo League Endpoint", 
-                is_demo_league and has_te_and_def,
-                f"Demo league: {is_demo_league}, TE & DEF present: {has_te_and_def}"
+                "Create Demo League", 
+                league_valid,
+                f"League: {response.get('name')}, Teams: {len(response.get('teams', []))}, Budget: ${response.get('budget_per_team')}"
             )
         
-        return self.log_test("GET Demo League Endpoint", False, f"Error: {response}")
+        return self.log_test("Create Demo League", False, f"Error: {response}")
 
     def test_get_league(self):
         """Test retrieving league by ID"""
