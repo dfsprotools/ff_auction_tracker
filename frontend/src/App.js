@@ -1074,10 +1074,27 @@ const AuctionTracker = () => {
 
     // Initialize with same league data as control interface
     useEffect(() => {
-      if (!league) {
-        console.log('Display interface initializing - loading demo league...');
-        loadDemoLeague();
-      }
+      const initializeDisplay = async () => {
+        // Try to get the current league ID from localStorage (set by control interface)
+        const storedLeagueId = localStorage.getItem('current_league_id');
+        
+        if (storedLeagueId && storedLeagueId !== league?.id) {
+          try {
+            console.log('Display loading league from storage:', storedLeagueId);
+            const response = await axios.get(`${API}/leagues/${storedLeagueId}`);
+            setLeague(response.data);
+          } catch (error) {
+            console.error('Error loading stored league:', error);
+            // Fallback to loading demo league
+            loadDemoLeague();
+          }
+        } else if (!league) {
+          console.log('Display interface initializing - loading demo league...');
+          loadDemoLeague();
+        }
+      };
+      
+      initializeDisplay();
     }, []);
 
     // Real-time sync: Poll for updates every 3 seconds on display interface
