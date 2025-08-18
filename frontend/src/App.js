@@ -1011,6 +1011,33 @@ const AuctionTracker = () => {
           </CardContent>
         </Card>
 
+        {/* Export Controls */}
+        <Card className="bg-white/10 backdrop-blur-md border-white/20">
+          <CardHeader>
+            <CardTitle className="text-white text-lg">📁 Export Draft Results</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <Button 
+              onClick={exportDraftResults}
+              disabled={!league?.all_picks || league.all_picks.length === 0}
+              className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
+            >
+              📊 Export All Picks (CSV)
+            </Button>
+            <Button 
+              onClick={exportTeamRosters}
+              disabled={!league?.teams || league.teams.length === 0}
+              variant="outline"
+              className="w-full border-slate-600 text-slate-300 hover:bg-slate-700"
+            >
+              📋 Export Team Rosters (CSV)
+            </Button>
+            <div className="text-xs text-slate-400 text-center">
+              {league?.all_picks?.length || 0} picks • {league?.teams?.length || 0} teams
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Quick Stats */}
         <Card className="bg-white/10 backdrop-blur-md border-white/20">
           <CardContent className="pt-4">
