@@ -198,6 +198,12 @@ const AuctionTracker = () => {
       return;
     }
 
+    // Block Kicker drafts with clear message
+    if (player.position === 'K') {
+      toast.error('❌ Kickers have been removed from this league format. Please select a different player.');
+      return;
+    }
+
     try {
       const response = await axios.post(`${API}/leagues/${league.id}/draft`, {
         player: {
