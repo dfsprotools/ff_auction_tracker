@@ -408,8 +408,8 @@ async def search_players(q: str = "", position: str = "", limit: int = 500):
                     "pos_rank": row["Pos Rank ETR"].strip('"')
                 }
                 
-                # Only add valid players
-                if player["name"] and player["position"]:
+                # Only add valid players (exclude Kickers)
+                if player["name"] and player["position"] and player["position"] != "K":
                     players.append(player)
                     
             except (ValueError, KeyError) as e:
