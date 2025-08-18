@@ -268,7 +268,6 @@ const AuctionTracker = () => {
       case 'TE': return 'border-pink-400 text-pink-300 bg-pink-500/10';
       case 'FLEX': return 'border-indigo-400 text-indigo-300 bg-indigo-500/10';
       case 'DST': return 'border-orange-400 text-orange-300 bg-orange-500/10';
-      case 'K': return 'border-purple-400 text-purple-300 bg-purple-500/10';
       case 'BENCH': return 'border-slate-400 text-slate-300 bg-slate-500/10';
       default: return 'border-gray-400 text-gray-300 bg-gray-500/10';
     }
