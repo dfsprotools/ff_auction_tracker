@@ -123,9 +123,9 @@ backend:
 frontend:
   - task: "Fix missing TE and DEF positions in DisplayInterface positions needed section"
     implemented: true
-    working: true
+    working: false
     file: "/app/frontend/src/App.js"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
     needs_retesting: false
     status_history:
@@ -135,6 +135,9 @@ frontend:
         - working: true
           agent: "main"
           comment: "Fixed the issue by removing the .slice(0, 6) limitation in DisplayInterface line 1249, allowing all positions needed to be displayed including TE and DEF. The fix has been implemented and services restarted successfully."
+        - working: false
+          agent: "testing"
+          comment: "COMPREHENSIVE TESTING RESULTS: ✅ TE positions are now VISIBLE (14/14 teams show TE) - the slice fix is working for TE! ❌ DEF positions are still MISSING (0/14 teams show DEF) despite being configured in league settings (DEF: 1). Issue: League settings show DEF: 1 is configured, but calculatePositionsNeeded function may not be processing DEF positions correctly. The .slice() fix resolved TE visibility but DEF positions are still not appearing in POSITIONS NEEDED sections."
 
 metadata:
   created_by: "main_agent" 
