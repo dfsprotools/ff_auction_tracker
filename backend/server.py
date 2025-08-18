@@ -254,8 +254,8 @@ async def create_demo_league():
             }
         )
         team = calculate_team_metrics(team, {
-            "QB": 1, "RB": 2, "WR": 2, "TE": 1, 
-            "FLEX": 1, "K": 1, "DEF": 1
+            "QB": 1, "RB": 2, "WR": 3, "TE": 1, 
+            "FLEX": 1, "DEF": 1
         }, 16)
         teams.append(team)
     
