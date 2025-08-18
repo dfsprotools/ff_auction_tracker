@@ -730,6 +730,11 @@ const AuctionTracker = () => {
 
             <Button 
               onClick={() => {
+                console.log('Draft button clicked', { 
+                  searchResults: searchResults.length, 
+                  selectedTeam, 
+                  bidAmount 
+                });
                 if (searchResults.length > 0) {
                   addDraftPick(searchResults[0]);
                 }
