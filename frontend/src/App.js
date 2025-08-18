@@ -1266,18 +1266,18 @@ const AuctionTracker = () => {
       return 1; // Deep bench/undrafted players worth $1
     }
     
-    // CORRECTED: Use exponential decay curve instead of linear percentiles
+    // CORRECTED: Use realistic multiplier curve  
     const draftPercentile = rank / expectedDrafted;
     
     let multiplier;
-    if (draftPercentile <= 0.1) {        // Top 10% of drafted players
-      multiplier = 3.0 + (0.1 - draftPercentile) * 10; // 3x to 4x average
+    if (draftPercentile <= 0.1) {        // Top 10% of drafted players  
+      multiplier = 2.2 + (0.1 - draftPercentile) * 3; // 2.2x to 2.5x average
     } else if (draftPercentile <= 0.3) { // Next 20% (elite tier)
-      multiplier = 1.8 + (0.3 - draftPercentile) * 6; // 1.8x to 3x average
+      multiplier = 1.4 + (0.3 - draftPercentile) * 4; // 1.4x to 2.2x average  
     } else if (draftPercentile <= 0.7) { // Solid starters  
-      multiplier = 1.0 + (0.7 - draftPercentile) * 2; // 1x to 1.8x average
+      multiplier = 0.8 + (0.7 - draftPercentile) * 1.5; // 0.8x to 1.4x average
     } else {                            // Bench players
-      multiplier = 0.3 + (1.0 - draftPercentile) * 2.3; // 0.3x to 1x average
+      multiplier = 0.2 + (1.0 - draftPercentile) * 2; // 0.2x to 0.8x average
     }
     
     // Calculate average value per drafted player at this position
