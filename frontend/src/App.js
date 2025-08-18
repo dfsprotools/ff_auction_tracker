@@ -384,7 +384,7 @@ const AuctionTracker = () => {
         let value = Math.round(baseValue * multiplier);
         
         // Minimum values
-        if (position === 'K' || position === 'DST') {
+        if (position === 'DST') {
           value = Math.max(1, value);
         } else {
           value = Math.max(1, value);
