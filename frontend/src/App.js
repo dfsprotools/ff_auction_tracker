@@ -588,7 +588,7 @@ const AuctionTracker = () => {
               >
                 <div className="flex-1">
                   <div className="flex items-center space-x-2">
-                    <span className="font-medium">
+                    <span className="font-medium text-white">
                       {index + 1}. {player.name}
                     </span>
                     <Badge className={getPositionColorClass(player.position)}>
