@@ -794,94 +794,97 @@ const AuctionTracker = () => {
   );
 
   // Display Interface (TV View) - Read-only
-  const DisplayInterface = () => (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-6">
-      <div className="text-center mb-8">
-        <h1 className="text-4xl font-bold text-white mb-2">{league?.name || 'Fantasy Football Auction'}</h1>
-        <div className="text-xl text-slate-300">
-          {league?.total_teams} Teams • ${league?.budget_per_team} Budget • {league?.roster_size} Roster Spots
-        </div>
-      </div>
-
-      <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        {league?.teams?.map((team, index) => (
-          <Card key={team.id} className="bg-white/10 backdrop-blur-md border-white/20">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-white text-lg">{team.name}</CardTitle>
-              <div className="text-sm text-slate-300">
-                Budget: ${team.remaining} • Spots: {team.remaining_spots}
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="mb-3 p-2 bg-slate-800/50 rounded border-l-4 border-emerald-500">
-                <div className="text-slate-300 text-xs">MAX BID</div>
-                <div className={`text-xl ${getMaxBidColorClass(team.max_bid)}`}>
-                  ${team.max_bid}
-                </div>
-              </div>
-
-              <div className="space-y-1">
-                <div className="text-slate-400 text-xs font-medium">
-                  Roster ({team.roster.length}/{league.roster_size})
-                </div>
-                <div className="max-h-32 overflow-y-auto space-y-1">
-                  {team.roster.slice(-3).map((pick, idx) => (
-                    <div key={pick.id} className="flex justify-between text-xs">
-                      <span className="text-white">{pick.player.name}</span>
-                      <span className="text-emerald-400">${pick.amount}</span>
-                    </div>
-                  ))}
-                  {team.roster.length === 0 && (
-                    <div className="text-slate-500 text-xs italic">No players</div>
-                  )}
-                </div>
-              </div>
-
-              <div className="mt-3">
-                <div className="text-slate-400 text-xs font-medium mb-1">Positions Needed</div>
-                <div className="flex flex-wrap gap-1">
-                  {calculatePositionsNeeded(team, league.position_requirements).slice(0, 4).map((pos, idx) => (
-                    <Badge
-                      key={idx}
-                      className={`text-xs ${getPositionColorClass(pos.position)}`}
-                    >
-                      {pos.position}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {league?.all_picks && league.all_picks.length > 0 && (
-        <div className="mt-8">
-          <h2 className="text-2xl font-bold text-white mb-4">Recent Picks</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-            {league.all_picks.slice(-9).reverse().map((pick, index) => {
-              const team = league.teams.find(t => t.id === pick.team_id);
-              return (
-                <div key={pick.id} className="bg-white/5 rounded-lg p-3 border border-white/10">
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <div className="text-white font-medium">{pick.player.name}</div>
-                      <div className="text-slate-400 text-sm">
-                        {pick.player.position} • {team?.name}
-                      </div>
-                    </div>
-                    <div className="text-emerald-400 font-bold text-lg">
-                      ${pick.amount}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
+  const DisplayInterface = () => {
+    console.log('DisplayInterface rendering...');
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-6">
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold text-white mb-2">{league?.name || 'Fantasy Football Auction'}</h1>
+          <div className="text-xl text-slate-300">
+            {league?.total_teams} Teams • ${league?.budget_per_team} Budget • {league?.roster_size} Roster Spots
           </div>
         </div>
-      )}
-    </div>
-  );
+
+        <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {league?.teams?.map((team, index) => (
+            <Card key={team.id} className="bg-white/10 backdrop-blur-md border-white/20">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-white text-lg">{team.name}</CardTitle>
+                <div className="text-sm text-slate-300">
+                  Budget: ${team.remaining} • Spots: {team.remaining_spots}
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="mb-3 p-2 bg-slate-800/50 rounded border-l-4 border-emerald-500">
+                  <div className="text-slate-300 text-xs">MAX BID</div>
+                  <div className={`text-xl ${getMaxBidColorClass(team.max_bid)}`}>
+                    ${team.max_bid}
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <div className="text-slate-400 text-xs font-medium">
+                    Roster ({team.roster.length}/{league.roster_size})
+                  </div>
+                  <div className="max-h-32 overflow-y-auto space-y-1">
+                    {team.roster.slice(-3).map((pick, idx) => (
+                      <div key={pick.id} className="flex justify-between text-xs">
+                        <span className="text-white">{pick.player.name}</span>
+                        <span className="text-emerald-400">${pick.amount}</span>
+                      </div>
+                    ))}
+                    {team.roster.length === 0 && (
+                      <div className="text-slate-500 text-xs italic">No players</div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="mt-3">
+                  <div className="text-slate-400 text-xs font-medium mb-1">Positions Needed</div>
+                  <div className="flex flex-wrap gap-1">
+                    {calculatePositionsNeeded(team, league.position_requirements).slice(0, 4).map((pos, idx) => (
+                      <Badge
+                        key={idx}
+                        className={`text-xs ${getPositionColorClass(pos.position)}`}
+                      >
+                        {pos.position}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        {league?.all_picks && league.all_picks.length > 0 && (
+          <div className="mt-8">
+            <h2 className="text-2xl font-bold text-white mb-4">Recent Picks</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              {league.all_picks.slice(-9).reverse().map((pick, index) => {
+                const team = league.teams.find(t => t.id === pick.team_id);
+                return (
+                  <div key={pick.id} className="bg-white/5 rounded-lg p-3 border border-white/10">
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <div className="text-white font-medium">{pick.player.name}</div>
+                        <div className="text-slate-400 text-sm">
+                          {pick.player.position} • {team?.name}
+                        </div>
+                      </div>
+                      <div className="text-emerald-400 font-bold text-lg">
+                        ${pick.amount}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
 
   if (loading) {
     return (
