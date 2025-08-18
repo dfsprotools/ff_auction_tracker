@@ -415,6 +415,13 @@ class FantasyFootballAPITester:
         self.test_get_league()
         self.test_get_all_leagues()
         
+        # Critical tests for TE and DEF positions (user issue)
+        print("\n🎯 CRITICAL TESTS - TE and DEF Position Support")
+        self.test_get_demo_league_endpoint()
+        self.test_demo_league_position_requirements()
+        self.test_te_position_search()
+        self.test_def_position_search()
+        
         # Player search tests
         self.test_player_search()
         self.test_player_search_by_position()
