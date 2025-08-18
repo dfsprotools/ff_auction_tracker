@@ -152,5 +152,5 @@ test_plan:
 agent_communication:
     - agent: "main"
       message: "User reported missing TE and DST positions on /display page. Identified the issue: DisplayInterface line ~1249 uses positionsNeeded.slice(0, 6) which truncates the positions list. Need to increase this limit or remove it entirely to show all needed positions including TE and DEF."
-    - agent: "testing"
-      message: "Backend testing completed successfully. All 15 backend API tests passed including critical TE and DEF position verification. Key findings: 1) Demo league position_requirements correctly include TE:1 and DEF:1, 2) Player search API returns TE players successfully, 3) Defense players available as DST in CSV data and searchable via API, 4) No backend issues found related to user's reported problem. The issue was frontend display limitation (already fixed by main agent), not backend data availability."
+    - agent: "main"
+      message: "User requested comprehensive frontend testing to verify that the TE and DEF positions display fix is working correctly on the /display page. Need to test: 1) All positions show in POSITIONS NEEDED sections, 2) TE positions are visible, 3) DEF positions appear when teams need defense players, 4) No positions are truncated, 5) Display page loads and updates correctly." user's reported problem. The issue was frontend display limitation (already fixed by main agent), not backend data availability."
