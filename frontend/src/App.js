@@ -86,7 +86,7 @@ const AuctionTracker = () => {
         budget_per_team: response.data.budget_per_team,
         roster_size: response.data.roster_size,
         position_requirements: response.data.position_requirements || {
-          QB: 1, RB: 2, WR: 2, TE: 1, FLEX: 1, K: 1, DEF: 1
+          QB: 1, RB: 2, WR: 2, TE: 1, FLEX: 1, DEF: 1
         }
       });
       console.log('Demo league loaded:', response.data);
