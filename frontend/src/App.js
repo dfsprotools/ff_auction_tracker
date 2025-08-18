@@ -701,7 +701,10 @@ const AuctionTracker = () => {
               </div>
             )}
 
-            <Select value={selectedTeam} onValueChange={setSelectedTeam}>
+            <Select value={selectedTeam} onValueChange={(value) => {
+              setSelectedTeam(value);
+              console.log('Team selected:', value); // Debug
+            }}>
               <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
                 <SelectValue placeholder="Select team" />
               </SelectTrigger>
